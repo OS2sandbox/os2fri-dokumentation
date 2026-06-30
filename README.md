@@ -10,14 +10,15 @@ OS2fri er et open source-projekt der sigter mod at levere et komplet skrivebords
 
 For at skabe gennemsigtighed og sporbarhed føres der en beslutningslog over væsentlige beslutninger i projektet.
 
-### Hvordan fungerer det?
+### Sådan registrerer du en beslutning
 
-Hver beslutning bliver beskrevet i et issue, hvor emnet kan diskuteres åbent. Når beslutningen er truffet, lukkes issuet. Herefter oprettes et dokumentationsudkast, som en anden kigger igennem og godkender. Først derefter registreres beslutningen i loggen.
+1. **Opret et issue** — vælg skabelonen *Beslutning*, udfyld felterne (Beslutningstagere, Kontekst, Beslutning, Konsekvenser)
+2. **Sæt label** — sæt `Beslutning` på issuet
+3. **Luk issuet** — når I er enige om beskrivelsen, lukkes det som løst (completed)
+4. **Godkend pull requesten** — der oprettes automatisk et udkast; en anden end dig selv kigger igennem og godkender
+5. **Beslutningen er officiel** — efter godkendelse og merge står den i `DECISION_LOG.md`
 
-Processen sikrer at:
-- Alle beslutninger bliver diskuteret før de tages
-- Der er en tydelig beslutningstager på hver beslutning
-- Dokumentationen er gennemgået før den bliver officiel
+Processen sikrer at alle beslutninger diskuteres før de tages, at der er en tydelig beslutningstager, og at dokumentationen er gennemgået før den bliver officiel.
 
 ### Hvad indeholder loggen?
 
@@ -34,4 +35,4 @@ Beslutningsloggen ligger som en almindelig fil (`DECISION_LOG.md`) og kan læses
 
 ## Bidrag
 
-Se [CONTRIBUTING.md](CONTRIBUTING.md) for hvordan du registrerer en beslutning eller bidrager til dokumentationen.
+Vi byder alle bidrag velkommen — både rettelser til dokumentationen og forbedringer af selve beslutningslog-værktøjet. Se [CONTRIBUTING.md](CONTRIBUTING.md) for retningslinjer.

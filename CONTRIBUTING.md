@@ -1,37 +1,39 @@
-# Sådan registrerer du en beslutning
+# Bidrag til OS2fri-dokumentation
 
-Når I har truffet en væsentlig beslutning i projektet, skal den dokumenteres i beslutningsloggen. Det gør du i få trin.
+Tak fordi du vil bidrage! OS2fri er et open source-projekt, og vi
+værdsætter alle der hjælper med at gøre dokumentationen bedre.
 
-## 1. Opret et issue
+## Hvordan kan du bidrage?
 
-Opret et nyt issue i repoet og vælg skabelonen **Beslutning**. Udfyld felterne:
+- **Rapportér fejl** — opret et issue hvis du finder noget der er
+  forkert, uklart eller mangler i dokumentationen
+- **Foreslå forbedringer** — har du en idé til noget der kan gøres
+  bedre? Opret et issue og mærk det med `enhancement`
+- **Skriv eller ret dokumentation** — send en pull request med dine
+  ændringer. Mindre rettelser (stavefejl, links) er altid velkomne
+- **Forbedr beslutningslog-værktøjet** — kildekoden ligger i
+  [automatiseret-beslutningslog](https://codeberg.org/os2-sandbox/automatiseret-beslutningslog)
 
-| Felt | Hvad skal der stå |
-|---|---|
-| **Beslutningstagere** | Hvem traf beslutningen? Skriv navn(e), rolle(r) eller hvilket organ der besluttede. |
-| **Kontekst** | Hvorfor blev beslutningen nødvendig? Hvilke problemer eller muligheder lå bag? |
-| **Beslutning** | Hvad blev besluttet? Vær præcis og konkret. |
-| **Konsekvenser** | Hvad betyder beslutningen fremadrettet? Både positive og negative konsekvenser. |
+## Sådan sender du en pull request
 
-## 2. Sæt label
+1. Fork repoet og opret en branch til din ændring
+2. Lav dine ændringer — hold dem fokuserede og beskrivende
+3. Test at det ser rigtigt ud (læs Markdown-filen i et viewer-værktøj)
+4. Send pull requesten og beskriv hvad den gør og hvorfor
 
-Sæt label `Beslutning` på issuet. Det fortæller systemet at dette issue skal ende i beslutningsloggen.
+## Forventninger til samarbejdet
 
-## 3. Luk issuet
+For at skabe et trygt og inkluderende miljø forventer vi at alle
+bidragydere overholder følgende:
 
-Når beslutningen er truffet og I er enige om beskrivelsen, lukkes issuet som **løst** (completed).
+- Vær respektfuld og imødekommende over for andre
+- Undgå personangreb, nedladende sprog og anden uacceptabel adfærd
+- Accepter konstruktiv kritik og giv den på samme måde
+- Fokuser på hvad der er bedst for fællesskabet og projektet
 
-## 4. Godkend pull requesten
+Projektet forbeholder sig ret til at afvise bidrag eller udelukke
+bidragydere der ikke overholder disse retningslinjer.
 
-Der bliver automatisk oprettet en pull request med et udkast til beslutningsloggen. En anden end dig selv — gerne en der ikke var direkte involveret i beslutningen — kigger igennem og godkender.
+## Spørgsmål?
 
-## 5. Beslutningen er officiel
-
-Når pull requesten er godkendt og merget, står beslutningen i loggen. Herefter kan alle se den under `DECISION_LOG.md`.
-
-## God praksis
-
-- Brug et issue per beslutning — hold emnerne adskilt
-- Vær tydelig i beskrivelsen — tænk på at andre skal kunne læse det om et år
-- Involér gerne relevante parter i diskussionen før issuet lukkes
-- Har du spørgsmål? Opret et issue og spør — eller tag fat i sekretariatet
+Opret et issue eller kontakt sekretariatet. Vi hjælper gerne.
