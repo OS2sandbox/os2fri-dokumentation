@@ -1,0 +1,37 @@
+name: Beslutningslog
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  beslutning:
+    if: contains(github.event.issue.labels.*.name, 'Beslutning')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate decision log entry
+        run: |
+          podman run --rm \
+            -v "$(pwd):/repo:z" \
+            -e ISSUE_NUMBER="${{ github.event.issue.number }}" \
+            -e ISSUE_TITLE="${{ github.event.issue.title }}" \
+            -e ISSUE_BODY="${{ github.event.issue.body }}" \
+            -e ISSUE_LABELS="${{ join(github.event.issue.labels.*.name, ', ') }}" \
+            -e ISSUE_CLOSED_AT="${{ github.event.issue.closed_at }}" \
+            -e OUTPUT_LOG="DECISION_LOG.md" \
+            ghcr.io/jankjerbye_os2/beslutningslog:latest
+
+      - name: Create pull request
+        run: |
+          BRANCH="beslutning/${{ github.event.issue.number }}"
+          git checkout -b "$BRANCH"
+          git add DECISION_LOG.md
+          git commit -m "BDR-#${{ github.event.issue.number }}: ${{ github.event.issue.title }}"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "BDR-#${{ github.event.issue.number }}: ${{ github.event.issue.title }}" \
+            --body "Tilføjer beslutning #${{ github.event.issue.number }} til beslutningsloggen." \
+            --label "Beslutning"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
