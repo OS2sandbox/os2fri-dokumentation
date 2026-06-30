@@ -4,7 +4,7 @@ Dette repo indeholder dokumentation for OS2fri-projektet.
 
 ## Formål
 
-OS2fri er et open source-projekt der sigter mod at levere et komplet skrivebordsmiljø til den offentlige sektor. Dokumentationen her beskriver projektets governance, processer og beslutninger.
+Dokumentationen her beskriver projektets governance, processer og beslutninger.
 
 ## Beslutningslog
 
