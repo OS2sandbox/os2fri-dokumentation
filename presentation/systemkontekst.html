@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>OS2fri – systemkontekst</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="os2fri-dsl.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #f8fafc; color: #1f2937;
+  }
+
+  #canvas { position: fixed; inset: 0; overflow: hidden; }
+  #viewport { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #viewport svg.edges { position: absolute; left: 0; top: 0; overflow: visible; }
+  #cards { position: absolute; left: 0; top: 0; }
+
+  /* ---- Element cards ---- */
+  .card {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(15,23,42,.16), 0 2px 6px rgba(15,23,42,.06);
+    border: 1px solid rgba(255,255,255,.18);
+    cursor: pointer;
+    user-select: none;
+  }
+  .card .name { font-weight: 700; font-size: 15px; line-height: 1.25; display: flex; align-items: center; }
+  .card .desc { font-size: 12px; line-height: 1.35; opacity: .92; margin-top: 4px; }
+
+  .card.person {
+    background: linear-gradient(160deg, #f7f9fb 0%, #edf1f5 100%);
+    color: #24303e;
+    border: 1px solid #cdd6df;
+    border-radius: 14px;
+    box-shadow: 0 8px 22px rgba(15,23,42,.12), 0 2px 6px rgba(15,23,42,.05);
+  }
+  .card.person .name { color: #24303e; }
+  .card.person .desc { color: #52606e; }
+  .person-icon {
+    display: inline-flex;
+    width: 20px; height: 20px;
+    margin-right: 8px;
+    vertical-align: -4px;
+    color: #7a8fa3;
+  }
+  .person-icon svg { width: 100%; height: 100%; fill: currentColor; }
+
+  .sys-icon {
+    display: inline-flex;
+    width: 18px; height: 18px;
+    margin-right: 8px;
+    vertical-align: -3px;
+    color: inherit;
+  }
+  .sys-icon svg { width: 100%; height: 100%; fill: currentColor; }
+  .card.container .sys-icon { width: 13px; height: 13px; margin-right: 6px; vertical-align: -2px; }
+
+  .card.container {
+    padding: 8px 10px; border-radius: 8px; font-size: 12px;
+    box-shadow: 0 4px 10px rgba(15,23,42,.15);
+  }
+  .card.container .name { font-size: 12px; }
+  .card.container .desc { font-size: 10px; margin-top: 2px; }
+  .card.boundary { background: transparent; box-shadow: none; cursor: default; }
+
+  /* ---- Edges ---- */
+  path.edge { fill: none; stroke: #9aa4b2; stroke-width: 1.4; opacity: .8; }
+  .edge-label {
+    font: 600 11px system-ui, sans-serif;
+    fill: #3f4c5a;
+    paint-order: stroke;
+    stroke: rgba(255,255,255,.85);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+  .edge-pill {
+    fill: #ffffff;
+    stroke: #d4dbe3;
+    stroke-width: 1;
+  }
+  rect.boundary-box {
+    fill: rgba(248,250,252,.55);
+    stroke: #cbd5e1; stroke-width: 1.5;
+    stroke-dasharray: 6 4;
+    rx: 14; ry: 14;
+  }
+  text.boundary-title {
+    font: 600 13px system-ui, sans-serif;
+    fill: #334155;
+  }
+
+  /* ---- Controls / hint ---- */
+  #controls {
+    position: fixed; top: 12px; left: 12px; z-index: 10;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    padding: 8px 10px; border-radius: 10px;
+    background: rgba(255,255,255,.88); box-shadow: 0 2px 10px rgba(0,0,0,.12);
+  }
+  #controls button, #controls select {
+    font: inherit; font-size: 13px; line-height: 1.4;
+    border: 1px solid #cbd5e1; background: #fff; color: #1f2937;
+    padding: 4px 12px; border-radius: 6px; cursor: pointer; user-select: none;
+  }
+  #controls button:hover { background: #eef2ff; }
+  #controls select { max-width: 46vw; cursor: pointer; }
+
+  #error {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    padding: 2rem; text-align: center; font-size: 15px; color: #b91c1c;
+  }
+</style>
+</head>
+<body>
+<div id="controls">
+  <select id="view-select"></select>
+</div>
+<div id="canvas">
+  <div id="viewport">
+    <svg class="edges" width="0" height="0"></svg>
+    <div id="cards"></div>
+  </div>
+</div>
+
+<!--
+  Snapshot af OS2fri DSL (Structurizr). Kildefilen i repoet er den egentlige
+  kilde til sandheden – redigér i c4hero (https://github.com/c4hero/c4hero)
+  og opdater denne blok (eller servér mappen over HTTP, så blokken
+  automatisk overskrives af os2fri.dsl).
+-->
+
+<script>
+(function () {
+  "use strict";
+
+  // --------------------------------------------------------------------------
+  // Source: use embedded snapshot by default; live-fetch os2fri.dsl when the
+  // page is served over HTTP (over file:// local fetch is blocked by CORS).
+  // --------------------------------------------------------------------------
+  var DSL_SOURCE = (typeof window.OS2FRI_DSL !== "undefined" ? window.OS2FRI_DSL : "");
+
+  var PERSON_ICON =
+    '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+    '<circle cx="12" cy="8.2" r="4.2"></circle>' +
+    '<path d="M4.5 21c0-4.1 3.4-6.6 7.5-6.6s7.5 2.5 7.5 6.6v.4H4.5z"></path></svg>';
+
+  function ic(d) { return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + d + '"/></svg>'; }
+
+  var ICONS_BY_TAG = {
+    "Base":   ic("M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.26-7.38 5.73zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"),
+    "Base Image": ic("M11.99 18.54l-7.37-5.73L3 14.07l9 7 9-7-1.63-1.26-7.38 5.73zM12 16l7.36-5.73L21 9l-9-7-9 7 1.63 1.27L12 16z"),
+    "Console": ic("M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H3V4h18v12z"),
+    "Project": ic("M20 18c1.1 0 1.99-.9 1.99-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2H0v2h24v-2h-4zM4 6h16v10H4V6z"),
+    "Git":   ic("M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"),
+    "Monitoring": ic("M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 18V6z"),
+    "Identity": ic("M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"),
+    "Mail":  ic("M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"),
+    "Device": ic("M21 11V9h-2V7c0-1.1-.9-2-2-2h-2V3h-2v2h-2V3H9v2H7c-1.1 0-2 .9-2 2v2H3v2h2v2H3v2h2v2c0 1.1.9 2 2 2h2v2h2v-2h2v2h2v-2h2c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2zm-6 6H9V7h6v10z"),
+    "Exchange": ic("M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"),
+    "Saml": ic("M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM15.5 20H8v-1.5c0-1.8 2.2-3.5 4-3.5s4 1.7 4 3.5V20zm-2-10.5c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"),
+    "Database": ic("M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm6 3H4V5h4v2zM2 14h20v-4H2v4zm2-3h2v2H4v-2z"),
+    "Repository": ic("M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"),
+    "Helm IaC": ic("M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"),
+    "CI/CD": ic("M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zM12 18c3.31 0 6-2.69 6-6 0-1.01-.25 1.97-.7 2.8l1.46-1.46C19.54 14.03 20 12.57 20 12c0-4.42-3.58-8-8-8V1l-4 4 4 4V6c2.76 0 5 2.24 5 5 0 .55-.45 1-1 1h-1c-.55 0-1-.45-1-1 0-1.66-1.34-3-3-3h-1V1L4 5l4 4V6c1.66 0 3 1.34 3 3v1h1c1.66 0 3 1.34 3 3v2h1c1.66 0 3 1.34 3 3z"),
+    "Web":  ic("M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z")
+  };
+
+  function tagIcon(el) {
+    for (var i = 0; i < el.tags.length; i++) {
+      if (ICONS_BY_TAG[el.tags[i]]) return ICONS_BY_TAG[el.tags[i]];
+    }
+    var n = (el.name || "").toLowerCase();
+    if (n.indexOf("kode") >= 0 || n.indexOf("repo") >= 0) return ICONS_BY_TAG["Repository"];
+    if (n.indexOf("database") >= 0 || n.indexOf("register") >= 0) return ICONS_BY_TAG["Database"];
+    if (n.indexOf("mail") >= 0) return ICONS_BY_TAG["Mail"];
+    if (n.indexOf("kalender") >= 0 || n.indexOf("calendar") >= 0) return ic("M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h5v5H7z");
+    if (n.indexOf("booking") >= 0 || n.indexOf("ressource") >= 0) return ic("M7 11h2v2H7zM11 11h2v2h-2zM15 11h2v2h-2zM5 15h14v1H5zM5 17h14v1H5zM5 13h2v2H5zm0 2h2v2H5zM19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V9h14v10z");
+    if (n.indexOf("grænseflade") >= 0 || n.indexOf("frontend") >= 0 || n.indexOf("web") >= 0) return ICONS_BY_TAG["Web"];
+    if (n.indexOf("byg") >= 0 || n.indexOf("release") >= 0 || n.indexOf("pipeline") >= 0) return ICONS_BY_TAG["CI/CD"];
+    return "";
+  }
+
+  var els = {};        // id -> element
+  var rels = [];       // relations
+  var views = [];      // views
+  var stylesByTag = {};   // tag -> { background, color, shape }
+  var stylesByType = {};
+
+  var svg = d3.select("#viewport .edges");
+  var cards = d3.select("#cards");
+  var viewport = d3.select("#viewport");
+  var canvas = d3.select("#canvas");
+
+  var zoom = d3.zoom().scaleExtent([0.15, 4]).on("zoom", function (ev) {
+    viewport.style("transform", "translate(" + ev.transform.x + "px," + ev.transform.y + "px) scale(" + ev.transform.k + ")");
+  });
+  canvas.call(zoom);
+
+  var panning = false;
+
+  // --------------------------------------------------------------------------
+  // Tiny Structurizr DSL reader (subset: model/persons/systems/containers,
+  // relations, views, styles). Line-oriented, like the official parser.
+  // --------------------------------------------------------------------------
+  function tokenize(line) {
+    var toks = [], s = "", i = 0, n = line.length, inStr = false;
+    var push = function () { if (s) { toks.push(s); s = ""; } };
+    for (; i < n; i++) {
+      var c = line[i];
+      if (inStr) {
+        s += c;
+        if (c === '"') inStr = false;
+      } else if (c === '"') { inStr = true; s += c; }
+      else if (/\s/.test(c)) push();
+      else s += c;
+    }
+    push();
+    return toks;
+  }
+
+  function unquote(t) { return t && t[0] === '"' ? t.slice(1, -1) : t; }
+
+  function isString(t) { return !!t && t[0] === '"'; }
+
+  function parse(text) {
+    var lines = text.replace(/\r/g, "").split("\n");
+    var stack = ["workspace"];
+    var currentView = null;
+    var currentStyle = null;
+    var currentElementStack = [];
+    var groupStack = [];
+
+    function parseElement(toks, parentId) {
+      var id = toks[0];
+      var type = toks[2];
+      var typeMap = { person: "Person", softwareSystem: "SoftwareSystem", container: "Container", component: "Component" };
+      var el = { id: id, name: id, description: "", type: typeMap[type] || type, tags: [], parent: parentId,
+                 group: groupStack.length ? groupStack[groupStack.length - 1] : null };
+      var i = 3;
+      var named = 0;
+      var inline = false;
+      var opens = 0, closes = 0;
+      for (; i < toks.length; i++) {
+        var t = toks[i];
+        if (t === "{") { opens++; inline = true; continue; }
+        if (t === "}") { closes++; inline = false; continue; }
+        if (!inline) {
+          if (isString(t)) {
+            var v = unquote(t);
+            if (named === 0) el.name = v;
+            else if (named === 1) el.description = v;
+            else if (named === 2) { /* technology */ }
+            else if (named === 3) el.tags = [v];
+            named++;
+          }
+        } else if (t === "tags") {
+          el.tags = toks[i + 1] ? [unquote(toks[i + 1])] : [];
+          i++;
+        }
+      }
+      els[id] = el;
+      if (parentId) (els[parentId].children = els[parentId].children || []).push(id);
+      if (opens > closes) {
+        currentElementStack.push(id);
+        stack.push("element");
+      }
+    }
+
+    function parseRelation(toks) {
+      rels.push({
+        source: toks[0],
+        target: toks[2],
+        label: toks[3] ? unquote(toks[3]) : "",
+        technology: toks[4] ? unquote(toks[4]) : ""
+      });
+    }
+
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li].trim();
+      if (!line || line.indexOf("//") === 0) continue;
+      var toks = tokenize(line);
+      if (!toks.length) continue;
+      if (toks[0] === "}") {
+        var top = stack.pop();
+        if (top === "view") currentView = null;
+        if (top === "style") currentStyle = null;
+        if (top === "element") currentElementStack.pop();
+        if (top === "group") groupStack.pop();
+        continue;
+      }
+      var ctx = stack[stack.length - 1];
+      var currentElement = currentElementStack[currentElementStack.length - 1] || null;
+
+      if (ctx === "workspace") {
+        if (toks[0] === "model") stack.push("model");
+        else if (toks[0] === "views") stack.push("views");
+      }
+      else if (ctx === "model" || ctx === "element") {
+        if (toks[0] === "properties" && toks[1] === "{") stack.push("properties");
+        else if (toks[0] === "group") { stack.push("group"); groupStack.push(unquote(toks[1])); }
+        else if (toks[1] === "=") parseElement(toks, ctx === "element" ? currentElement : null);
+        else if (toks[1] === "->") parseRelation(toks);
+        else if (toks[0] === "tags" && currentElement) els[currentElement].tags = toks.slice(1).map(unquote);
+      }
+      else if (ctx === "group") {
+        if (toks[0] === "properties" && toks[1] === "{") stack.push("properties");
+        else if (toks[0] === "group") { stack.push("group"); groupStack.push(unquote(toks[1])); }
+        else if (toks[1] === "=") parseElement(toks, null);
+        else if (toks[1] === "->") parseRelation(toks);
+      }
+      else if (ctx === "views") {
+        if (toks[0] === "properties" && toks[1] === "{") stack.push("properties");
+        else if (toks[0] === "theme") { /* ignore */ }
+        else if (toks[0] === "styles") stack.push("styles");
+        else if (toks[0] === "systemLandscape" || toks[0] === "systemContext" ||
+                 toks[0] === "container" || toks[0] === "component") {
+          var isLandscape = (toks[0] === "systemLandscape" || toks[0] === "systemContext");
+          var key = toks[1] ? unquote(toks[1]) : null;
+          var title = toks[2] && isString(toks[2]) ? unquote(toks[2]) : null;
+          currentView = { type: toks[0], key: key, title: title, landscape: isLandscape, include: null, autoLayout: "tb" };
+          views.push(currentView);
+          stack.push("view");
+        }
+      }
+      else if (ctx === "view") {
+        if (toks[0] === "include") {
+          if (toks[1] === "*") currentView.include = ["*"];
+          else currentView.include = toks.slice(1).map(unquote);
+        }
+        else if (toks[0] === "autoLayout") {
+          if (toks[1] && isString(toks[1])) currentView.autoLayout = unquote(toks[1]).toLowerCase();
+        }
+      }
+      else if (ctx === "styles") {
+        if (toks[0] === "element") {
+          currentStyle = { name: toks[1] ? unquote(toks[1]) : "" };
+          stack.push("style");
+        }
+      }
+      else if (ctx === "style") {
+        if (toks[0] === "background") currentStyle.background = toks[1];
+        else if (toks[0] === "color") currentStyle.color = toks[1];
+        else if (toks[0] === "shape") currentStyle.shape = toks[1];
+        if (toks[0] === "background" || toks[0] === "color" || toks[0] === "shape") {
+          var key = currentStyle.name;
+          if (key === "Software System") stylesByType.SoftwareSystem = Object.assign({}, currentStyle);
+          else if (key === "Person") stylesByType.Person = Object.assign({}, currentStyle);
+          else if (key === "Container") stylesByType.Container = Object.assign({}, currentStyle);
+          else stylesByTag[key] = Object.assign({}, currentStyle);
+        }
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // View resolution
+  // --------------------------------------------------------------------------
+  function includedIds(view) {
+    var ids = [];
+    if (view.include) {
+      if (view.include[0] === "*") {
+        if (view.landscape) {
+          Object.keys(els).forEach(function (k) {
+            var e = els[k];
+            if (e.type === "Person" || (e.type === "SoftwareSystem" && !e.parent)) ids.push(k);
+          });
+        } else {
+          // container view: the keyed system + its containers
+          var sys = els[view.key];
+          if (sys) {
+            ids.push(sys.id);
+            (sys.children || []).forEach(function (c) { ids.push(c); });
+          }
+        }
+      } else {
+        ids = view.include;
+      }
+    } else {
+      ids = Object.keys(els);
+    }
+    return ids.filter(function (k) { return els[k]; });
+  }
+
+  function viewRelations(included) {
+    var set = {};
+    included.forEach(function (k) { set[k] = true; });
+    return rels.filter(function (r) { return set[r.source] && set[r.target]; });
+  }
+
+  function elementColor(el) {
+    for (var i = 0; i < el.tags.length; i++) {
+      if (stylesByTag[el.tags[i]]) return stylesByTag[el.tags[i]].background || "#556070";
+    }
+    if (el.type === "Person" && stylesByType.Person) return stylesByType.Person.background || "#64748b";
+    if (el.type === "SoftwareSystem") return "#556070";
+    if (stylesByType.Container) return stylesByType.Container.background || "#5a6b7d";
+    return "#5a6b7d";
+  }
+
+  function elementShape(el) {
+    for (var i = 0; i < el.tags.length; i++) {
+      if (stylesByTag[el.tags[i]] && stylesByTag[el.tags[i]].shape) return stylesByTag[el.tags[i]].shape;
+    }
+    if (el.type === "Person") return "Person";
+    if (el.type === "Container") return "RoundedBox";
+    return "RoundedBox";
+  }
+
+  // --------------------------------------------------------------------------
+  // Layout
+  // --------------------------------------------------------------------------
+  var PAD = 60, GAP_X = 140, GAP_Y = 26, BAND_GAP = 190;
+  var W_PERSON = 260, W_SYSTEM = 300, W_CONTAINER = 230;
+  var H_PERSON = 88, H_SYSTEM = 88, H_CONTAINER = 64;
+
+  function cardDims(el) {
+    if (el.type === "Person") return [W_PERSON, H_PERSON];
+    if (el.type === "Container") return [W_CONTAINER, H_CONTAINER];
+    return [W_SYSTEM, H_SYSTEM];
+  }
+
+  function layoutView(view) {
+    var ids = includedIds(view);
+    var elements = ids.map(function (k) { return els[k]; });
+    var persons = elements.filter(function (e) { return e.type === "Person"; });
+    var systems = elements.filter(function (e) { return e.type === "SoftwareSystem"; });
+    var containers = elements.filter(function (e) { return e.type === "Container"; });
+    var dir = view.autoLayout || "tb";
+
+    var pos = {};   // id -> {x, y, w, h}
+    var bound = null;
+
+    if (containers.length && systems.length === 1 && !persons.length) {
+      // Container view: system boundary + inner arrangement
+      var sys = systems[0];
+      var singleRow = (dir === "lr" || dir === "rl");
+      var cols = singleRow ? containers.length : Math.max(2, Math.ceil(Math.sqrt(containers.length + 1)));
+      var rows = singleRow ? 1 : Math.ceil(containers.length / cols);
+      var bw = cols * W_CONTAINER + (cols - 1) * GAP_X * 0.6 + 90;
+      var bh = rows * H_CONTAINER + (rows - 1) * GAP_Y + 78;
+      var bx = PAD, by = PAD;
+      containers.forEach(function (c, i) {
+        var cx = i % cols, cy = Math.floor(i / cols);
+        pos[c.id] = {
+          x: bx + 45 + cx * (W_CONTAINER + GAP_X * 0.6) + W_CONTAINER / 2,
+          y: by + 50 + cy * (H_CONTAINER + GAP_Y) + H_CONTAINER / 2,
+          w: W_CONTAINER, h: H_CONTAINER
+        };
+      });
+      pos[sys.id] = { x: bx + bw / 2, y: by + bh / 2, w: bw, h: bh };
+      bound = sys;
+    } else {
+      // Landscape/system context: honor autoLayout direction.
+      // tb/bt → two horizontal bands; lr/rl → two columns.
+      function band(items, yC, w, h, maxW) {
+        var n = items.length;
+        if (!n) return;
+        var rowW = n * w + (n - 1) * GAP_X;
+        var x0 = PAD + maxW / 2 - rowW / 2;
+        items.forEach(function (e, i) {
+          pos[e.id] = { x: x0 + i * (w + GAP_X) + w / 2, y: yC, w: w, h: h };
+        });
+      }
+
+      function column(items, xC, w, h, spanH) {
+        items.forEach(function (e, i) {
+          var y = PAD + spanH / 2 - h / 2;
+          if (items.length > 1) y = PAD + i * ((spanH - h) / (items.length - 1));
+          pos[e.id] = { x: xC, y: y, w: w, h: h };
+        });
+      }
+
+      var spanH = Math.max(persons.length, systems.length, 1) * H_SYSTEM +
+        (Math.max(persons.length, systems.length, 1) - 1) * GAP_Y;
+
+      if (dir === "tb" || dir === "bt") {
+        // Split systems into the shared platform group ("Niveau 3") and the
+        // application systems, so platform systems sit on their own band.
+        var platform = systems.filter(function (e) { return e.group === "Niveau 3"; });
+        var apps = systems.filter(function (e) { return e.group !== "Niveau 3"; });
+        var bandsTopDown = dir === "tb" ? [persons, apps, platform] : [platform, apps, persons];
+        var dims = function (b) {
+          var t = b.length ? b[0].type : "Person";
+          return { w: t === "Person" ? W_PERSON : W_SYSTEM, h: t === "Person" ? H_PERSON : H_SYSTEM };
+        };
+        var maxW = 1;
+        bandsTopDown.forEach(function (b) {
+          if (!b.length) return;
+          var d = dims(b);
+          maxW = Math.max(maxW, b.length * d.w + (b.length - 1) * GAP_X);
+        });
+        var yC = PAD;
+        bandsTopDown.forEach(function (b) {
+          if (!b.length) return;
+          var d = dims(b);
+          band(b, yC + d.h / 2, d.w, d.h, maxW);
+          yC += d.h + BAND_GAP;
+        });
+      } else {
+        var pLeft = dir !== "rl";
+        var xP, xS;
+        if (pLeft) { xP = PAD + W_PERSON / 2; xS = PAD + W_PERSON + GAP_X + W_SYSTEM / 2; }
+        else { xS = PAD + W_SYSTEM / 2; xP = PAD + W_SYSTEM + GAP_X + W_PERSON / 2; }
+        column(persons, xP, W_PERSON, H_PERSON, spanH);
+        column(systems, xS, W_SYSTEM, H_SYSTEM, spanH);
+      }
+      // any leftover containers (unlikely in these views) → band below
+      var ci = 0;
+      containers.forEach(function (e) {
+        if (pos[e.id]) return;
+        pos[e.id] = { x: PAD + ci * (W_CONTAINER + 30) + W_CONTAINER / 2, y: PAD + spanH + H_SYSTEM + GAP_Y - H_CONTAINER / 2, w: W_CONTAINER, h: H_CONTAINER };
+        ci++;
+      });
+    }
+    return { pos: pos, bound: bound, ids: ids };
+  }
+
+  // --------------------------------------------------------------------------
+  // Rendering
+  // --------------------------------------------------------------------------
+  function render(view) {
+    var lay = layoutView(view);
+    var ids = lay.ids;
+    var pos = lay.pos;
+    var relsV = viewRelations(ids);
+    var elements = ids.map(function (k) { return els[k]; });
+
+    // compute content bounds
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    elements.forEach(function (e) {
+      var p = pos[e.id];
+      minX = Math.min(minX, p.x - p.w / 2); minY = Math.min(minY, p.y - p.h / 2);
+      maxX = Math.max(maxX, p.x + p.w / 2); maxY = Math.max(maxY, p.y + p.h / 2);
+    });
+    var contentW = maxX - minX + PAD * 2;
+    var contentH = maxY - minY + PAD * 2;
+    var ox = PAD - minX, oy = PAD - minY;
+
+    viewport.style("width", contentW + "px").style("height", contentH + "px");
+    svg.attr("width", contentW).attr("height", contentH);
+    svg.selectAll("*").remove();
+    cards.selectAll("*").remove();
+
+    // boundary box (container views)
+    if (lay.bound) {
+      var b = pos[lay.bound.id];
+      svg.append("rect").attr("class", "boundary-box")
+        .attr("x", b.x - b.w / 2 + ox).attr("y", b.y - b.h / 2 + oy)
+        .attr("width", b.w).attr("height", b.h);
+      svg.append("text").attr("class", "boundary-title")
+        .attr("x", b.x - b.w / 2 + ox + 18).attr("y", b.y - b.h / 2 + oy + 24)
+        .text(lay.bound.name);
+    } else {
+      // Enterprise boundary (dashed, light grey): encloses internal systems;
+      // external dependencies (tags "Exchange"/"Saml") stay outside, per C4.
+      var isExternal = function (e) {
+        return e.tags.indexOf("Exchange") >= 0 || e.tags.indexOf("Saml") >= 0;
+      };
+      var internals = elements.filter(function (e) {
+        return (e.type === "SoftwareSystem" || e.type === "Container") && !isExternal(e);
+      });
+      if (internals.length > 1) {
+        var ex0 = Infinity, ey0 = Infinity, ex1 = -Infinity, ey1 = -Infinity;
+        internals.forEach(function (e) {
+          var p = pos[e.id];
+          ex0 = Math.min(ex0, p.x - p.w / 2); ey0 = Math.min(ey0, p.y - p.h / 2);
+          ex1 = Math.max(ex1, p.x + p.w / 2); ey1 = Math.max(ey1, p.y + p.h / 2);
+        });
+        var bp = 52;
+        svg.append("rect").attr("class", "boundary-box")
+          .attr("x", ex0 - bp + ox).attr("y", ey0 - bp + oy)
+          .attr("width", ex1 - ex0 + bp * 2).attr("height", ey1 - ey0 + bp * 2);
+        svg.append("text").attr("class", "boundary-title")
+          .attr("x", ex0 - bp + ox + 18).attr("y", ey0 - bp + oy + 26)
+          .text("Interne systemer");
+      }
+    }
+
+    // edges
+    var edgeLayer = svg.append("g");
+    relsV.forEach(function (r) {
+      var s = pos[r.source], t = pos[r.target];
+      if (!s || !t) return;
+      var x1 = s.x + ox, y1 = s.y + oy, x2 = t.x + ox, y2 = t.y + oy;
+      var mx = (x1 + x2) / 2;
+      var d = "M" + x1 + "," + y1 + "C" + mx + "," + y1 + " " + mx + "," + y2 + " " + x2 + "," + y2;
+      edgeLayer.append("path").attr("class", "edge").attr("d", d);
+      if (r.label) {
+        var label = r.label + (r.technology ? " · " + r.technology : "");
+        var my = (y1 + y2) / 2;
+        var textEl = edgeLayer.append("text").attr("class", "edge-label")
+          .attr("x", mx).attr("y", my)
+          .attr("text-anchor", "middle")
+          .text(label);
+        var tw = textEl.node() ? textEl.node().getComputedTextLength() : 0;
+        edgeLayer.insert("rect", ".edge-label").attr("class", "edge-pill")
+          .attr("x", mx - tw / 2 - 9).attr("y", my - 10)
+          .attr("width", tw + 18).attr("height", 20).attr("rx", 10);
+      }
+    });
+
+    // element cards (the boundary element itself is drawn as the dashed box above)
+    var cardEls = elements.filter(function (e) { return !(lay.bound && e.id === lay.bound.id); });
+    var cardsSel = cards.selectAll(".card").data(cardEls).enter().append("div");
+    cardsSel.attr("class", function (e) { return "card " + (e.type === "Person" ? "person" : e.type === "Container" ? "container" : ""); })
+      .attr("data-id", function (e) { return e.id; })
+      .style("left", function (e) { return (pos[e.id].x + ox) + "px"; })
+      .style("top", function (e) { return (pos[e.id].y + oy) + "px"; })
+      .style("width", function (e) { return (pos[e.id].w - 4) + "px"; })
+      .style("min-height", function (e) { return pos[e.id].h + "px"; })
+      .style("background", function (e) { return e.type === "Person" ? null : elementColor(e); })
+      .style("color", function (e) { return e.type === "Person" ? null : "#fff"; });
+
+    cardsSel.each(function (e) {
+      var d = d3.select(this);
+      var nameDiv = d.append("div").attr("class", "name");
+      if (e.type === "Person") nameDiv.append("span").attr("class", "person-icon").html(PERSON_ICON);
+      else { var icon = tagIcon(e); if (icon) nameDiv.append("span").attr("class", "sys-icon").html(icon); }
+      nameDiv.append("span").text(e.name);
+      if (e.description) d.append("div").attr("class", "desc").text(e.description);
+    });
+
+    fit(contentW, contentH);
+  }
+
+  function fit(cw, ch) {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var k = Math.min(vw / cw, vh / ch, 1.1);
+    k = Math.max(k, zoom.scaleExtent()[0]);
+    var tx = (vw - cw * k) / 2, ty = (vh - ch * k) / 2;
+    canvas.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(k));
+  }
+
+  // --------------------------------------------------------------------------
+  // View switcher
+  // --------------------------------------------------------------------------
+  function populateViews() {
+    var sel = d3.select("#view-select");
+    sel.selectAll("option").data(views).enter().append("option")
+      .attr("value", function (v, i) { return i; })
+      .text(function (v) { return (v.title || v.key) + (v.landscape ? "" : " (containere)"); });
+    var landscape = views.findIndex(function (v) { return v.landscape && v.key === "OS2fri"; });
+    sel.property("value", String(landscape >= 0 ? landscape : 0));
+    sel.on("change", function () {
+      var i = +this.value;
+      if (views[i]) render(views[i]);
+    });
+  }
+
+  canvas.on("zoomstart", function () { panning = true; });
+  canvas.on("zoomend", function () { panning = false; });
+
+  window.addEventListener("resize", function () {
+    var vw = parseFloat(viewport.style("width"));
+    var vh = parseFloat(viewport.style("height"));
+    if (vw && vh) fit(vw, vh);
+  });
+
+  // --------------------------------------------------------------------------
+  // Boot
+  // --------------------------------------------------------------------------
+  try {
+    parse(DSL_SOURCE);
+    if (!Object.keys(els).length) throw new Error("Ingen elementer fundet i DSL.");
+    populateViews();
+    var start = views.findIndex(function (v) { return v.landscape && v.key === "OS2fri"; });
+    render(views[start >= 0 ? start : 0]);
+  } catch (err) {
+    document.body.insertAdjacentHTML("beforeend",
+      '<div id="error">Kunne ikke fortolke <code>os2fri.dsl</code>: ' + escapeHtml(err.message) + "</div>");
+    console.error(err);
+  }
+
+  // Optional live refresh when served over HTTP (file:// fetch is CORS-blocked).
+  if (window.fetch) {
+    fetch("OS2fri.dsl").then(function (r) { return r.ok ? r.text() : null; }).then(function (t) {
+      if (t && t.trim() !== DSL_SOURCE) {
+        DSL_SOURCE = t.trim();
+        els = {}; rels = []; views = []; stylesByTag = {}; stylesByType = {};
+        try {
+          parse(DSL_SOURCE);
+          populateViews();
+          var start = views.findIndex(function (v) { return v.landscape && v.key === "OS2fri"; });
+          render(views[start >= 0 ? start : 0]);
+        } catch (err) { console.error(err); }
+      }
+    }).catch(function () { /* file:// → embedded snapshot used */ });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+})();
+</script>
+</body>
+</html>

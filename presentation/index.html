@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OS2Base – arkitekturanbefalinger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+  <style>
+    :root {
+      --green: #3a7f3b;
+      --green-dark: #1b3c1c;
+      --green-light: #b0ccb1;
+      --green-lighter: #d8e5d8;
+      --dark: #202020;
+      --gray: #5a5a5a;
+    }
+
+    body {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      background: #f8fafc;
+    }
+
+    .reveal {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      color: var(--dark);
+    }
+
+    .reveal .slides { text-align: left; }
+
+    .reveal .slides section {
+      padding: 4rem 4.5rem;
+      min-height: 100%;
+    }
+
+    .reveal h2 {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 700;
+      color: var(--green-dark);
+      text-transform: none;
+      letter-spacing: -0.02em;
+      font-size: 3.4em;
+      margin-bottom: .7em;
+    }
+
+    .rec p {
+      font-size: 1.3em;
+      line-height: 1.6;
+      margin-bottom: .5em;
+    }
+
+    .rec-label {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .rec-block {
+      border-left: 4px solid var(--green);
+      padding: .5em 0 .5em 1em;
+      margin-bottom: .4em;
+    }
+
+    .rec-alt {
+      border-left: 4px solid var(--green-light);
+      padding: .5em 0 .5em 1em;
+      margin-bottom: .4em;
+      background: rgba(216,229,216,.25);
+      border-radius: 0 6px 6px 0;
+    }
+
+    .rec-risk {
+      font-size: .7em;
+      color: var(--gray);
+      font-style: italic;
+      margin-top: .15em;
+    }
+
+    .title-slide {
+      text-align: center !important;
+    }
+    .title-slide h2 {
+      font-size: 5em;
+      margin-bottom: .2em;
+    }
+    .title-slide .sub {
+      font-size: 1.4em;
+      color: var(--gray);
+      margin-top: .6em;
+    }
+    .title-slide .title-accent {
+      width: 100px;
+      height: 4px;
+      background: var(--green);
+      margin: .5em auto 1em;
+      border-radius: 2px;
+    }
+
+    .mindmap-slide {
+      padding: 1rem 2rem !important;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .context-slide {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 1rem 2rem !important;
+    }
+
+    .context-slide h2 {
+      font-size: 2.6em;
+      margin-bottom: .45em;
+    }
+
+    .context-lead {
+      font-size: 1.15em;
+      color: var(--gray);
+      line-height: 1.6;
+      margin-bottom: .7em;
+    }
+
+    .context-diagram {
+      background: #fff;
+      border: 1px solid var(--green-lighter);
+      border-radius: 14px;
+      padding: .7em;
+      box-shadow: 0 6px 20px rgba(0,0,0,.07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .context-diagram img {
+      max-width: 100%;
+      max-height: 60vh;
+      width: auto;
+      height: auto;
+    }
+
+    .context-iframe {
+      width: 100%;
+      height: 62vh;
+      border: 0;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .context-note {
+      font-size: .9em;
+      color: var(--gray);
+      font-style: italic;
+      margin-top: .8em;
+      text-align: center;
+    }
+
+    .intro {
+      font-size: 1.3em;
+      line-height: 1.7;
+    }
+    .intro li {
+      font-size: 1em;
+      line-height: 1.7;
+      margin-bottom: .4em;
+    }
+    .intro li::marker { color: var(--green); }
+
+    .fragment.fade-up {
+      transition: all .4s cubic-bezier(.4,0,.2,1);
+    }
+    .fragment.fade-up.visible {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    .stagger-fade li:nth-child(1) { transition-delay: 0s; }
+    .stagger-fade li:nth-child(2) { transition-delay: .08s; }
+    .stagger-fade li:nth-child(3) { transition-delay: .16s; }
+    .stagger-fade li:nth-child(4) { transition-delay: .24s; }
+
+    .reveal .controls { color: var(--green); }
+    .reveal .controls button:hover { color: var(--green-dark); }
+    .reveal .progress {
+      background: var(--green-lighter);
+      color: var(--green);
+      height: 3px;
+    }
+    .reveal .progress span { background: var(--green); }
+
+    .reveal .slide-number {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-size: 12px;
+      color: var(--gray);
+      background: rgba(255,255,255,.85);
+      padding: 3px 10px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+
+    .o-logo {
+      position: fixed;
+      bottom: -180px;
+      left: -250px;
+      width: 640px;
+      height: 640px;
+      pointer-events: none;
+      color: var(--green-light);
+      opacity: 0.2;
+      z-index: 1;
+    }
+
+    @media (max-width: 640px) {
+      .reveal .slides section { padding: 1rem; }
+      .reveal h2 { font-size: 1.8em; }
+      .title-slide h2 { font-size: 2em; }
+      .rec p { font-size: .9em; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="o-logo" aria-hidden="true">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080">
+    <g transform="translate(0,1080) scale(0.1,-0.1)" fill="currentColor">
+      <path d="M4627 10163 c-4 -3 -7 -834 -7 -1845 l0 -1838 680 0 680 0 -2 1843 -3 1842 -671 3 c-369 1 -674 -1 -677 -5z M3115 9006 c-1724 -835 -2676 -2629 -2414 -4551 284 -2092 2049 -3667 4264 -3805 3104 -194 5448 2318 4909 5260 -234 1279 -1057 2390 -2239 3022 -149 80 -276 140 -283 134 -2 -3 -134 -283 -292 -622 l-288 -617 122 -72 c770 -449 1305 -1186 1475 -2033 446 -2211 -1466 -4128 -3681 -3692 -1135 223 -2081 1082 -2403 2181 -146 500 -164 1054 -50 1564 182 817 741 1560 1490 1984 50 28 95 54 102 58 12 8 -561 1254 -576 1253 -3 -1 -64 -29 -136 -64z"/>
+    </g>
+  </svg>
+</div>
+
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1. Title -->
+    <section class="title-slide" data-transition="zoom">
+      <h2>Arkitekturgruppens<br>anbefalinger</h2>
+      <div class="title-accent"></div>
+      <p class="sub">OS2base &ndash; fælles bund for OS2fri</p>
+      <p class="sub" style="font-size:.8em; margin-top:2em;">Juni 2026</p>
+    </section>
+
+    <!-- 2. Mindmap -->
+    <section data-background-iframe="mindmap.html" data-background-interactive data-preload></section>
+
+    <!-- 3. Systemkontekst (fugleperspektiv) -->
+    <section data-transition="convex" class="context-slide">
+      <h2>Systemkontekst &ndash; OS2fri arkitekturlandskab</h2>
+      <p class="context-lead">Hvem bruger OS2fri, og hvad bygger ovenpå den fælles bund?</p>
+      <div class="context-diagram">
+        <iframe class="context-iframe" src="systemkontekst.html" title="OS2fri i fugleperspektiv: elever, lærere, borgere og kommunale medarbejdere; tre pc-miljøer (skole, borger og administration) bygger på en fælles bund og styres fra en konsol"></iframe>
+      </div>
+      <p class="context-note">Tre pc-miljøer &ndash; skole, borger og administration &ndash; deler én fælles bund og kan styres fra ét sted.</p>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5/plugin/zoom/zoom.js"></script>
+<script>
+  Reveal.initialize({
+    plugins: [RevealZoom],
+    controls: true,
+    progress: true,
+    slideNumber: true,
+    hash: true,
+    center: false,
+    transition: 'convex',
+    backgroundTransition: 'fade'
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OS2base mindmap</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="mindmap-data.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    transition: background .3s, color .3s;
+  }
+  body.light { background: #f8fafc; color: #1f2937; }
+  body.dark  { background: #0f172a; color: #e5e7eb; }
+
+  #mindmap { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+
+  #controls {
+    position: fixed; top: 12px; left: 12px; z-index: 10;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    padding: 8px 10px; border-radius: 10px;
+    background: rgba(255,255,255,.88); box-shadow: 0 2px 10px rgba(0,0,0,.12);
+  }
+  body.dark #controls { background: rgba(15,23,42,.88); box-shadow: 0 2px 10px rgba(0,0,0,.5); }
+  #controls button {
+    font: inherit; font-size: 13px; line-height: 1.4;
+    border: 1px solid #cbd5e1; background: #fff; color: #1f2937;
+    padding: 4px 12px; border-radius: 6px; cursor: pointer; user-select: none;
+  }
+  body.dark #controls button { background: #1e293b; color: #e5e7eb; border-color: #334155; }
+  #controls button:hover { background: #eef2ff; }
+  body.dark #controls button:hover { background: #334155; }
+
+  #btn-toggle-all {
+    border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  #btn-toggle-all::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%;
+    background: #94a3b8; flex: none;
+    transition: background .15s;
+  }
+  #btn-toggle-all.active { border-color: #5e8a57; color: #5e8a57; }
+  #btn-toggle-all.active::before { background: #5e8a57; }
+
+  #hint {
+    position: fixed; bottom: 12px; left: 12px; z-index: 10;
+    font-size: 12px; color: #64748b; padding: 6px 10px; border-radius: 8px;
+    background: rgba(255,255,255,.75);
+  }
+  body.dark #hint { color: #94a3b8; background: rgba(15,23,42,.75); }
+
+  path.link { fill: none; stroke-width: 1.5; opacity: .85; }
+  body.light path.link { stroke: #cbd5e1; }
+  body.dark  path.link { stroke: #334155; }
+
+  .node { cursor: pointer; }
+  .node circle.core {
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform .18s ease, filter .18s ease;
+  }
+  .node:hover circle.core { transform: scale(1.4); filter: brightness(1.15); }
+  .node circle.hit { fill: transparent; pointer-events: all; }
+  .node circle.halo {
+    opacity: .1;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .node circle.ring {
+    fill: none;
+    stroke-dasharray: 4 3;
+    stroke-width: 1.75;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .node.collapsed circle.ring {
+    animation: ring-breathe 2.4s ease-in-out infinite, ring-drift 10s linear infinite;
+  }
+  .node.collapsed circle.halo { animation: halo-breathe 2.4s ease-in-out infinite; }
+  @keyframes ring-breathe {
+    0%, 100% { stroke-opacity: 1; transform: scale(1); }
+    50% { stroke-opacity: .45; transform: scale(1.15); }
+  }
+  @keyframes halo-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+  }
+  @keyframes ring-drift { to { stroke-dashoffset: -16; } }
+  body.light .node circle.core { stroke: #f8fafc; }
+  body.dark  .node circle.core { stroke: #0f172a; }
+  .node text {
+    font-size: 12px; fill: currentColor;
+    text-shadow: 0 1px 2px rgba(255,255,255,.7);
+  }
+  body.dark .node text { text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+  .node.root text { font-size: 15px; font-weight: 700; }
+
+  /* ---- Info / article popup ---- */
+  #info-modal { position: fixed; inset: 0; z-index: 30; pointer-events: none; }
+  #info-modal[hidden] { display: none; }
+  #info-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,.45); pointer-events: none; animation: info-fade .25s ease; }
+  #info-card {
+    position: absolute; left: 16px; top: 16px; width: 100%; max-width: 600px; max-height: 78vh;
+    overflow-y: auto; background: #fdfaf3; color: #3f3c37;
+    border-radius: 10px; box-shadow: 0 24px 60px rgba(38,31,20,.32);
+    border-top: 1px solid #2a2621;
+    padding: 34px 42px 32px; animation: info-in .28s cubic-bezier(.2,.9,.3,1.1);
+    pointer-events: auto;
+  }
+  #info-card::before {
+    content: ""; position: absolute; top: 4px; left: 42px; right: 42px;
+    height: 1px; background: #2a2621;
+  }
+  #info-close {
+    position: absolute; top: 14px; right: 14px; width: 34px; height: 34px;
+    border: none; border-radius: 50%; cursor: pointer; font-size: 20px; line-height: 1;
+    background: #ece6db; color: #6b6359; display: flex; align-items: center; justify-content: center;
+  }
+  #info-close:hover { background: #e2dac9; color: #2a2621; }
+  #info-title {
+    margin: 0 48px 6px 0; font-family: Georgia, "Times New Roman", serif;
+    font-weight: 700; font-size: 27px; line-height: 1.22; color: #211d18;
+  }
+  #info-breadcrumb {
+    margin: 0 0 14px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--info-accent, #2563eb);
+  }
+  #info-body { font-family: Georgia, "Times New Roman", serif; font-size: 17px; line-height: 1.8; color: #3f3c37; }
+  #info-body p { margin: 0 0 1em; }
+  #info-body p:last-child { margin-bottom: 0; }
+  #info-body .dropcap {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.3em; font-weight: 700; line-height: 1;
+    color: var(--info-accent, #2563eb);
+  }
+  @keyframes info-fade { from { opacity: 0; } }
+  @keyframes info-in { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+  @media (prefers-reduced-motion: reduce) {
+    #info-card, #info-backdrop { animation: none; }
+    .node circle.core, .node circle.halo, .node circle.ring,
+    #btn-toggle-all, #btn-toggle-all::before { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body class="light">
+
+<header id="controls">
+  <button id="btn-fit" title="Centrer mindmap på skærm">Centrer</button>
+  <button id="btn-toggle-all" title="Fold alle grene ud eller sammen">Udvid alle</button>
+</header>
+
+<div id="hint">Klik: folde ud / lukke · Hold musen over et blad: beskrivelse · Træk: panorere · Rul: zoome</div>
+
+<div id="info-modal" hidden>
+  <div id="info-backdrop"></div>
+  <article id="info-card">
+    <button id="info-close" aria-label="Luk">×</button>
+    <h2 id="info-title"></h2>
+    <div id="info-breadcrumb"></div>
+    <div id="info-body"></div>
+  </article>
+</div>
+
+<svg id="mindmap" aria-label="Mindmap over OS2base" role="img"></svg>
+
+<script>
+(function () {
+  "use strict";
+
+  var data = window.MINDMAP_DATA;
+  var svg = d3.select("#mindmap");
+  var g = svg.append("g");
+
+  var width = 0, height = 0, radius = 0;
+  var root, zoom;
+  var rendered = false;
+  var panning = false;
+
+  var collapsedDepth = 2;                 // interactive expand/fold: re-collapse children at depth >= 2
+  var palette = ["#94ad86", "#6fae9d", "#6b9fc0", "#8291cd", "#a292c7"];
+  var rootColor = "#5d8059";
+
+  function project(d) {
+    var a = (d.x - 90) * Math.PI / 180;
+    return [d.y * Math.cos(a), d.y * Math.sin(a)];
+  }
+
+  function linkCurve(s, t) {
+    var ls = Math.hypot(s[0], s[1]);
+    var lt = Math.hypot(t[0], t[1]);
+    var cs = ls ? [s[0] / ls * (ls + 40), s[1] / ls * (ls + 40)] : [0, 0];
+    var ct = lt ? [t[0] / lt * Math.max(lt - 40, 10), t[1] / lt * Math.max(lt - 40, 10)] : [0, 0];
+    return "M" + s[0] + "," + s[1] + "C" + cs[0] + "," + cs[1] + " " + ct[0] + "," + ct[1] + " " + t[0] + "," + t[1];
+  }
+
+  function branchIndex(d) {
+    var n = d;
+    while (n.depth > 1) n = n.parent;
+    if (n.depth === 0) return -1;
+    return n.parent.children.indexOf(n) % palette.length;
+  }
+
+  function branchColor(d) {
+    var i = branchIndex(d);
+    return i < 0 ? rootColor : palette[i];
+  }
+
+  function shade(hex, f) {
+    var n = parseInt(hex.slice(1), 16);
+    var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    if (f >= 0) {
+      r = Math.round(r + (255 - r) * f);
+      g = Math.round(g + (255 - g) * f);
+      b = Math.round(b + (255 - b) * f);
+    } else {
+      r = Math.round(r * (1 + f));
+      g = Math.round(g * (1 + f));
+      b = Math.round(b * (1 + f));
+    }
+    return "rgb(" + r + "," + g + "," + b + ")";
+  }
+
+  function branchGradient(d) {
+    var i = branchIndex(d);
+    return i < 0 ? "url(#gradRoot)" : "url(#grad" + i + ")";
+  }
+
+  function makeGradients() {
+    var defs = svg.append("defs");
+    var colors = palette.concat([rootColor]);
+    colors.forEach(function (c, i) {
+      var id = i === palette.length ? "gradRoot" : "grad" + i;
+      var grd = defs.append("radialGradient")
+        .attr("id", id)
+        .attr("cx", "50%").attr("cy", "50%").attr("r", "60%")
+        .attr("fx", "38%").attr("fy", "35%");
+      grd.append("stop").attr("offset", "0%").attr("stop-color", shade(c, 0.5));
+      grd.append("stop").attr("offset", "60%").attr("stop-color", c);
+      grd.append("stop").attr("offset", "100%").attr("stop-color", shade(c, -0.25));
+    });
+  }
+
+  function visibleNodes() {
+    var out = [];
+    root.each(function (d) { if (d.x !== undefined) out.push(d); });
+    return out;
+  }
+
+  function layout() {
+    d3.tree()
+      .size([360, radius])
+      .separation(function (a, b) { return (a.parent === b.parent ? 1 : 2) / a.depth; })(root);
+  }
+
+  function wrap(selection, width) {
+    selection.each(function () {
+      var el = d3.select(this);
+      var words = el.text().split(/\s+/);
+      el.text(null);
+      var line = [];
+      var first = true;
+      var emit = function () {
+        if (!line.length) return;
+        var ts = el.append("tspan").attr("x", 0).attr("dy", first ? "0em" : "1.15em");
+        first = false;
+        ts.text(line.join(" "));
+        line = [];
+      };
+      words.forEach(function (w) {
+        line.push(w);
+        if (line.join(" ").length * 6.5 > width) {
+          line.pop();
+          emit();
+          line.push(w);
+        }
+      });
+      emit();
+    });
+  }
+
+  function clicked(event, d) {
+    event.stopPropagation();
+    if (d.children || d._children) {
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+        d.children.forEach(function (c) {
+          if (c.children && c.depth >= collapsedDepth) {
+            c._children = c.children;
+            c.children = null;
+          }
+        });
+      }
+      update(d, 500);
+    } else if (d.data.desc && !window.matchMedia("(hover: hover)").matches) {
+      openInfo(d);
+    }
+  }
+
+  function openInfo(d) {
+    var modal = document.getElementById("info-modal");
+    var card = document.getElementById("info-card");
+    modal.style.setProperty("--info-accent", branchColor(d));
+    document.getElementById("info-title").textContent = d.data.name;
+    var trail = ["OS2base"];
+    for (var n = d.parent; n && n.depth > 0; n = n.parent) trail.unshift(n.data.name);
+    document.getElementById("info-breadcrumb").textContent = trail.join("  /  ");
+    var body = document.getElementById("info-body");
+    body.innerHTML = "";
+    var first = true;
+    d.data.desc.split(/\n\s*\n/).forEach(function (para) {
+      var t = para.trim();
+      if (!t) return;
+      var p = document.createElement("p");
+      if (first) {
+        first = false;
+        var cap = document.createElement("span");
+        cap.className = "dropcap";
+        cap.textContent = t.charAt(0);
+        p.appendChild(cap);
+        p.appendChild(document.createTextNode(t.slice(1)));
+      } else {
+        p.textContent = t;
+      }
+      body.appendChild(p);
+    });
+    modal.hidden = false;
+    var p = project(d);
+    var t = d3.zoomTransform(svg.node());
+    var x = p[0] * t.k + t.x + 26;
+    var y = p[1] * t.k + t.y + 26;
+    var w = card.offsetWidth || 600;
+    var h = card.offsetHeight || 400;
+    x = Math.min(Math.max(x, 16), window.innerWidth - w - 16);
+    y = Math.min(Math.max(y, 16), window.innerHeight - Math.min(h, window.innerHeight * 0.72) - 16);
+    card.style.left = x + "px";
+    card.style.top = y + "px";
+  }
+
+  function closeInfo() {
+    clearTimeout(openTimer);
+    clearTimeout(closeTimer);
+    document.getElementById("info-modal").hidden = true;
+  }
+
+  var openTimer = null, closeTimer = null;
+
+  function scheduleOpen(d) {
+    if (panning || d.children || d._children || !d.data.desc) return;
+    clearTimeout(openTimer);
+    clearTimeout(closeTimer);
+    openTimer = setTimeout(function () { openInfo(d); }, 200);
+  }
+
+  function scheduleClose() {
+    clearTimeout(openTimer);
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(function () { closeInfo(); }, 400);
+  }
+
+  function cancelClose() {
+    clearTimeout(openTimer);
+    clearTimeout(closeTimer);
+  }
+
+  function update(source, duration) {
+    duration = duration == null ? 500 : duration;
+    layout();
+    var nodes = visibleNodes();
+    var links = root.links();
+
+    var node = g.selectAll("g.node").data(nodes, function (d) { return d.id; });
+
+    node.exit()
+      .transition().duration(duration).style("opacity", 0)
+      .remove();
+
+    var nodeEnter = node.enter().append("g")
+      .attr("class", "node")
+      .attr("transform", function () { return "translate(" + project(source).join(",") + ")"; })
+      .style("opacity", 0)
+      .on("click", clicked)
+      .on("mouseenter", function (event, d) { scheduleOpen(d); })
+      .on("mouseleave", scheduleClose);
+    nodeEnter.append("circle").attr("class", "hit");
+    nodeEnter.append("circle").attr("class", "halo");
+    nodeEnter.append("circle").attr("class", "core");
+    nodeEnter.append("circle").attr("class", "ring");
+    nodeEnter.append("text");
+
+    var nodeMerge = nodeEnter.merge(node);
+    nodeMerge.raise();
+    nodeMerge
+      .attr("class", function (d) {
+        return "node" + (d.depth === 0 ? " root" : "") + (d._children ? " collapsed" : "");
+      })
+      .transition().duration(duration)
+      .style("opacity", 1)
+      .attr("transform", function (d) { return "translate(" + project(d).join(",") + ")"; });
+
+    nodeMerge.select("circle.hit")
+      .attr("r", function (d) { return d.depth === 0 ? 18 : 15; });
+
+    nodeMerge.select("circle.core")
+      .attr("r", function (d) { return d.depth === 0 ? 8 : d.depth === 1 ? 6 : 4.5; })
+      .attr("fill", branchGradient);
+
+    nodeMerge.select("circle.ring")
+      .attr("r", function (d) { return d.depth === 0 ? 14 : d.depth === 1 ? 11 : 8.5; })
+      .attr("stroke", branchColor)
+      .style("display", function (d) { return d._children ? null : "none"; });
+
+    nodeMerge.select("circle.halo")
+      .attr("r", function (d) { return (d.depth === 0 ? 14 : d.depth === 1 ? 11 : 8.5) + 1.5; })
+      .attr("fill", branchColor)
+      .style("display", function (d) { return d._children ? null : "none"; });
+
+    nodeMerge.select("text")
+      .style("text-anchor", function (d) { return project(d)[0] < 0 ? "end" : "start"; })
+      .attr("dx", function (d) { return project(d)[0] < 0 ? -10 : 10; })
+      .attr("dy", "0.35em")
+      .text(function (d) { return d.data.name; })
+      .call(wrap, 150);
+
+    var link = g.selectAll("path.link").data(links, function (d) { return d.target.id; });
+
+    link.exit()
+      .transition().duration(duration).style("opacity", 0)
+      .remove();
+
+    var linkEnter = link.enter().append("path")
+      .attr("class", "link")
+      .attr("d", function (d) { return linkCurve(project(d.source), project(d.target)); })
+      .style("opacity", 0);
+
+    linkEnter.merge(link)
+      .transition().duration(duration)
+      .style("opacity", 1)
+      .attr("stroke", function (d) { return branchColor(d.target); })
+      .attr("d", function (d) { return linkCurve(project(d.source), project(d.target)); });
+
+    syncToggleButton();
+  }
+
+  function fit() {
+    var nodes = visibleNodes();
+    if (!nodes.length) return;
+    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    nodes.forEach(function (d) {
+      var p = project(d);
+      if (p[0] < minX) minX = p[0];
+      if (p[0] > maxX) maxX = p[0];
+      if (p[1] < minY) minY = p[1];
+      if (p[1] > maxY) maxY = p[1];
+    });
+    var dx = Math.max(maxX - minX, 1);
+    var dy = Math.max(maxY - minY, 1);
+    var scale = Math.min(width / dx, height / dy) * 0.85;
+    var t = d3.zoomIdentity
+      .translate(width / 2 - scale * (minX + maxX) / 2, height / 2 - scale * (minY + maxY) / 2)
+      .scale(scale);
+    svg.transition().duration(500).call(zoom.transform, t);
+  }
+
+  function collapseAll() {
+    root.eachBefore(function (d) {
+      if (d.height === 1 && d.children) { d._children = d.children; d.children = null; }
+    });
+    update(root, 500);
+  }
+
+  function expandAll() {
+    root.eachBefore(function (d) {
+      if (d._children) { d.children = d._children; d._children = null; }
+    });
+    update(root, 500);
+  }
+
+  function treeHasHidden() {
+    var hidden = false;
+    root.each(function (d) { if (d._children) hidden = true; });
+    return hidden;
+  }
+
+  function syncToggleButton() {
+    var b = document.getElementById("btn-toggle-all");
+    if (treeHasHidden()) {
+      b.textContent = "Udvid alle";
+      b.classList.remove("active");
+    } else {
+      b.textContent = "Sammenfold";
+      b.classList.add("active");
+    }
+  }
+
+  function toggleAll() {
+    if (treeHasHidden()) { expandAll(); } else { collapseAll(); }
+  }
+
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    radius = Math.min(width, height) / 2 - 130;
+    svg.attr("viewBox", [0, 0, width, height]);
+    layout();
+    if (rendered) { update(root, 0); }
+    else { update(root, 900); fit(); rendered = true; }
+  }
+
+  function init() {
+    root = d3.hierarchy(data);
+    var n = 0;
+    root.eachBefore(function (d) { d.id = n++; });
+    root.eachBefore(function (d) {
+      // Default collapse rule: fold any node with exactly one level of
+      // children below it (all leaves). Deeper structures stay expanded.
+      if (d.height === 1 && d.children) { d._children = d.children; d.children = null; }
+    });
+
+    zoom = d3.zoom()
+      .scaleExtent([0.2, 4])
+      .on("zoom", function (event) { g.attr("transform", event.transform); })
+      .on("start", function () { panning = true; closeInfo(); })
+      .on("end", function () { panning = false; });
+    svg.call(zoom);
+
+    makeGradients();
+    resize();
+    window.addEventListener("resize", resize);
+
+    document.getElementById("btn-fit").addEventListener("click", fit);
+    document.getElementById("btn-toggle-all").addEventListener("click", toggleAll);
+    document.getElementById("info-close").addEventListener("click", closeInfo);
+    document.getElementById("info-card").addEventListener("mouseenter", cancelClose);
+    document.getElementById("info-card").addEventListener("mouseleave", scheduleClose);
+    window.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeInfo();
+    });
+    syncToggleButton();
+  }
+
+  if (typeof d3 === "undefined" || !data) {
+    document.body.innerHTML = '<p style="padding:2rem;font-family:system-ui">Mindmap kunne ikke indlæses. Kontrollér internetforbindelsen (D3.js hentes fra CDN).</p>';
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
