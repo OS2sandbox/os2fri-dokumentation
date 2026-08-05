@@ -8,7 +8,7 @@
 | WP | Sektion | Emne | Status |
 |----|---------|------|--------|
 | 1.1 | §1 | Formål, afgrænsning & læsevejledning | `[plan]` |
-| 2.1 | §2 | Begrebsafklaring | `[plan]` |
+| 2.1 | §2 | Terminologi | `[plan]` |
 | 2.2 | §2 | Enhedsklasser & livscyklus | `[plan]` |
 | 2.3 | §2 | Krav til fleet-management | `[plan]` |
 | 3.1 | §3 | Metode & vurderingsniveau | `[plan]` |
@@ -36,10 +36,10 @@
 
 ## §2 Fleet management-scope
 
-### WP 2.1 — Begrebsafklaring
+### WP 2.1 — Terminologi
 
-- **Rationale:** Etablerer et entydigt sprog (enhed, fleet, base image, opdatering, kanal, image, deklaration) jf. issue 14, så resten af dokumentet er utvetydigt og evalueringen ikke misforstås.
-- **Indhold (når færdigt):** definition af de centrale begreber i én kort tabel, og hvilke betydninger der bevidst ikke anvendes.
+- **Rationale:** Dokumentet anvender de fælles OS2fri-begreber, der fastlægges i en kommende begrebsfil (`docs/begreber.md`, etableres via issue #14). Denne pakke består alene af en henvisning til den fil samt en kort forklaring af henvisningen — dokumentet definerer selv ingen begreber og fastlåser ingen definitioner.
+- **Indhold (når færdigt):** henvisning til `docs/begreber.md` og en kort forklaring af, at dokumentet anvender de fælles, teknologineutrale begreber der fastlægges der, og vil blive afstemt mod dem når filen foreligger.
 
 ### WP 2.2 — Enhedsklasser & livscyklus
 
