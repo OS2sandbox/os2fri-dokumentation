@@ -66,7 +66,7 @@ window.MINDMAP_DATA = {
       name: "Brugeroplevelse & Betjening",
       children: [
         {
-          name: "Lærer & Elev",
+          name: "Anvendere",
           children: [
             {
               name: "OS grænseflade der minder om Win10",
@@ -79,7 +79,7 @@ window.MINDMAP_DATA = {
           ],
         },
         {
-          name: "Administrator",
+          name: "Administratorer",
           children: [
             {
               name: "Tag ved lære af Google-grænsefladerne",
@@ -90,7 +90,7 @@ window.MINDMAP_DATA = {
               desc: "Vi spørger ind til administratorernes ideelle admin-UI, uafhængigt af backend-arkitekturen. Vi bygger efter behov frem for at kopiere al funktionalitet fra en Windows-løsning — enkelte beslutninger må vi dog træffe selv af effektivitetshensyn.",
             },
             {
-              name: "Invester i en målrettet egenudviklet administrator brugerflade",
+              name: "Invester i en målrettet skræddersyet administrator brugerflade",
               desc: "Administratorer vil ikke føle sig hjemme i en Git-grænseflade. En målrettet, egenudviklet admin-UI er en investering i dagligdagen for dem, der drifter løsningen — bygget specifikt til målgruppen.",
             },
           ],
