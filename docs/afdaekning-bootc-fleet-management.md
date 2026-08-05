@@ -8,7 +8,7 @@
 | WP | Sektion | Emne | Status |
 |----|---------|------|--------|
 | 1.1 | §1 | Formål, afgrænsning & læsevejledning | `[plan]` |
-| 2.1 | §2 | Terminologi | `[plan]` |
+| 2.1 | §2 | Terminologi | `[godkendt]` |
 | 2.2 | §2 | Enhedsklasser & livscyklus | `[plan]` |
 | 2.3 | §2 | Krav til fleet-management | `[plan]` |
 | 3.1 | §3 | Metode & vurderingsniveau | `[plan]` |
@@ -38,8 +38,9 @@
 
 ### WP 2.1 — Terminologi
 
-- **Rationale:** Dokumentet anvender de fælles OS2fri-begreber, der fastlægges i en kommende begrebsfil (`docs/begreber.md`, etableres via issue #14). Denne pakke består alene af en henvisning til den fil samt en kort forklaring af henvisningen — dokumentet definerer selv ingen begreber og fastlåser ingen definitioner.
-- **Indhold (når færdigt):** henvisning til `docs/begreber.md` og en kort forklaring af, at dokumentet anvender de fælles, teknologineutrale begreber der fastlægges der, og vil blive afstemt mod dem når filen foreligger.
+Begreber anvendes i overensstemmelse med den fælles begrebsfil **`docs/begreber.md`**, der etableres via [issue #14](https://github.com/OS2sandbox/os2fri-dokumentation/issues/14) ("Afgrænsning af flertydige begreber").
+
+Begrebsfilen fastlægger et fælles, teknologineutralt begrebssæt, så begreber som fx *enhed*, *flåde*, *base image* og *opdatering* betyder det samme på tværs af OS2fri-projekterne, uanset teknologivalg.
 
 ### WP 2.2 — Enhedsklasser & livscyklus
 
