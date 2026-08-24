@@ -1,9 +1,11 @@
 # Behov for flådestyring
-_Da der ikke er indsamlet og dokumenteret behov for OS2fri endnu, samler dokumentet de behov og metoder, der er opskrevet på baggrund af akkumulerede erfaringer i myndighederne gennem det sidste årti._
+_Da der ikke er indsamlet og dokumenteret behov for OS2fri endnu, forsøger dette dokumente at opridse nogle behov og metoder, på baggrund af akkumulerede erfaringer med device management i offentlige myndigheder gennem det sidste årti._
 
 ## Behovsafdækning
 
-Administratorer og driftsafdelinger formulerer sjældent nedskrevne tekniske krav — de oplever dem gennem hverdagens friktion: mange enheder, få hænder. Dokumentet beskriver derfor primært **administratorers og driftsafdelingernes behov** og fastlægger de højniveau-krav (R1–R6), flådestyringen bør opfylde, og de metoder (M1–M4), der kan levere på dem. Kravene og metoderne er formuleret teknologineutralt, så dokumentet er gyldigt uanset teknologi; hvilke **teknologier** der kan anvendes til at implementere metoderne, vurderes i [bootc-reference.md](bootc-reference.md).
+Administratorer og driftsafdelinger formulerer sjældent nedskrevne tekniske krav — de oplever dem gennem hverdagens friktion. Herunder de basale udfordinger når der er mange decentrale enheder at styre og få hænder til at udføre arbejdet. Ud fra dette beskriver dokumentet **administratorenes og driftsafdelingernes behov** og fastlægger en række højniveau-krav (R1–R6) samt en række metoder (M1–M4).
+Højniveaukravene og metoderne er formuleret teknologineutralt, så dokumentet er gyldigt uanset teknologi.
+Hvilke teknologier der kan anvendes til at implementere metoderne, vurderes seperat pr. teknologi i et seperat dokument: [bootc-reference.md](bootc-reference.md).
 
 ### Højniveau-krav
 
@@ -57,6 +59,7 @@ _"Hvorfor fejler maskinen? Hvem har pillet ved konfigurationen sidst?"_
 | **M3 Sporbar historik og tilbagerulning** — sporbar historik, så hver ændring kan føres tilbage til en beslutn | **M4 Gennemgang og godkendelse af ændringer** — ændringsstyring efter det klassiske ITIL-rammeværk: en ændring foreslås, gennemgås, godkendes og flettes ind, før den udrulles til flåden, så ændringer aldrig kommer uventet |
 
 ---
+
 ##### R3
 ## ⛨︎ **Sikkerhed**
 _"Hvis en enhed angribes, skal vi kunne håndtere det — hurtigt og effektivt. Optimalt uden at skulle være fysisk til stede ved maskinen."_
@@ -74,6 +77,7 @@ _"Hvis en enhed angribes, skal vi kunne håndtere det — hurtigt og effektivt. 
 | **M1 Godkendt tilstand beskrevet ét sted** — systemkerne, der i praksis ikke kan manipuleres fra enheden | **M2 Automatisk afstemning** — hurtig og ensartet opdatering af hele flåden; løbende sikkerhedsrapportering | **M3 Sporbar historik og tilbagerulning** — hurtig gendannelse af ramte enheder til den godkendte standardtilstand |
 
 ---
+
 ##### R4
 ## ⚙︎ **Effektiv drift**
 _"Vi er få mennesker til mange maskiner."_
@@ -91,6 +95,7 @@ _"Vi er få mennesker til mange maskiner."_
 | **M1 Godkendt tilstand beskrevet ét sted** — ændringer forankres i godkendte tilstande for hele flåden | **M2 Automatisk afstemning** — automatiseret og centralt styret vedligehold |
 
 ---
+
 ##### R5
 ## ⚖︎ **Lovgivningsmæssig efterlevelse**
 _"Vi skal kunne redegøre for vores systemer."_
@@ -108,6 +113,7 @@ _"Vi skal kunne redegøre for vores systemer."_
 | **M1 Godkendt tilstand beskrevet ét sted** — konsistent dokumentation | **M3 Sporbar historik og tilbagerulning** — sporbar historik og revision som et naturligt biprodukt af al administration | **M4 Gennemgang og godkendelse af ændringer** — godkendelse, før en ændring rammer flåden |
 
 ---
+
 ##### R6
 ## ∞ **Driftskontinuitet**
 _"Vi er afhængige af kontinuerlig drift — også ved uventede eksterne hændelser: aftaleophør, opkøb, licensændringer eller nye ejere af platformen."_
@@ -124,11 +130,9 @@ _"Vi er afhængige af kontinuerlig drift — også ved uventede eksterne hændel
 | :--- | :--- |
 | **M1 Godkendt tilstand beskrevet ét sted** — hele stacken (kode, deployments, konfiguration) beskrevet åbent og versionsstyret i git, så systemet kan genopbygges og flyttes | **M3 Sporbar historik og tilbagerulning** — leverandøruafhængighed: åbne standarder og formater uden proprietære bindinger |
 
-## Metoder der leverer på krav
+## Oversigt over krav og metoder
 
-På tværs af kravene går fire metoder igen, der tilsammen kan håndtere de opstillede scenarier og behov:
-
-#### Oversigt over krav og metoder
+På tværs af kravene går fire metoder igen, der tilsammen dækker alle de opstillede scenarier og behov:
 
 | Krav | M1<br/>Godkendt tilstand | M2<br/>Automatisk afstemning | M3<br/>Sporbar historik og tilbagerulning | M4<br/>Gennemgang og godkendelse |
 | :--- | :-: | :-: | :-: | :-: |
@@ -169,10 +173,16 @@ Set samlet leveres alle fire metoder af de standardiserede best practices, der e
 
 Én metode er særlig krævende: ændringsstyringen (R2 Forudsigelighed) lever kun fuldt ud, hvis den også gælder selve styresystemet — at OS'et kun kan ændres gennem den godkendte pipeline. Om en teknologi kan levere det, vurderes i [bootc-reference.md](bootc-reference.md).
 
+
+---
+
+## Generelle strategiske principper
+_Projektet bør operere inden for nationale og internationale arkitektur og leveranceprincipper for at sikre en fremtidssikret og robust løsning_
+
 ##### R7
-## ∞ **Genbrug af standardkomponenter**
+## ∞ **Maksimer ressourcerne via genbrug**
 _"Vi skal maksimere ressourcerne der anvendes til at levere værdi til myndighederne, ikke på at vedligeholde egenopfundne infrastruktur løsninger når der findes en international standard"_
-> Følg anerkendte arkitektur standarder for genbrug som "Don't t roll your own _infratructure_" og "Upstream first". Genbrug anderkendte standard metrikker for levedygtighed og sikkerhed før valg om genbgrug træffes.
+> Følg anerkendte arkitektur standarder og principper. Genbrug anderkendte standard metrikker for levedygtighed og sikkerhed før valg om genbrug af teknologier træffes.
 
 ##### R8
 ## ፠ **Digital Suverænitet og ejerskab by design**
@@ -182,12 +192,4 @@ _"Vi skal som myndigheder selv eje 100% af løsningen, så vi er rustede til eks
 ##### R9
 ## ༄ **Byg til fremtiden efter anerkendte principper**
 _"For at spare tid og penge, skal vi genanvende de rette nationale og internationale arktieturprincipper istedet for at lade en leverandør eller en stærk enkeltaktør styre udviklingen og skævvride værdileverancen til fællesskabet"_
-> For at levere en fair og solidarisk bred værdi til myndighederne i os2 fælleskabet skal vi lade os guide af den kollektive massive erfaring i at udvikle og levere software der ligger frit tilgængeligt i den internationale litteratur om Enterprise Arkitektur mønstre. OS2 er sat i verden for at levere værdi til det offentlige Danmark ikke opfinde ny infrastruktur.
-
-
----
-## Bilag A — Terminologi
-
-Begreber anvendes i overensstemmelse med den fælles begrebsfil **`docs/begreber.md`**, der etableres via [issue #14](https://github.com/OS2sandbox/os2fri-dokumentation/issues/14) ("Afgrænsning af flertydige begreber").
-
-Begrebsfilen fastlægger et fælles, teknologineutralt begrebssæt, så begreber som fx _enhed_, _flåde_, _base image_ og _opdatering_ betyder det samme på tværs af OS2fri-projekterne, uanset teknologivalg.
+> For at levere en fair og solidarisk bred værdi til myndighederne i os2 fælleskabet skal vi lade os guide af den kollektive massive erfaring i at udvikle og levere software der ligger frit tilgængeligt i den internationale litteratur om arkitektur mønstre og modeller. OS2 er sat i verden for at levere værdi til det offentlige Danmark ikke opfinde ny infrastruktur fra bunden.
