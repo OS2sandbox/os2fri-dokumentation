@@ -19,8 +19,6 @@ flowchart LR
   
 ```
 
----
-
 #### ✓ R1: Reliability
 
 _"The devices should just work."_
@@ -54,8 +52,6 @@ _"Why is the machine failing? Who last changed the configuration?"_
 - **M3 Traceable history and rollback**: a traceable history that allows every change to be traced back to a decision
 - **M4 Review and approval of changes**: change management in accordance with the traditional ITIL framework: a change is proposed, reviewed, approved, and merged before being rolled out to the fleet, ensuring that changes are never unexpected
 
----
-
 #### ⛨︎ R3: Security
 
 _"If a device is attacked, we need to be able to handle it—quickly and effectively. Ideally without having to be physically present at the machine."_
@@ -72,8 +68,6 @@ _"If a device is attacked, we need to be able to handle it—quickly and effecti
 - **M2 Automatic reconciliation**: rapid and consistent updates across the entire fleet; continuous security reporting
 - **M3 Traceable history and rollback**: rapid restoration of affected devices to the approved standard state
 
----
-
 #### ⚙︎ R4: Efficient Operations
 
 _"We have few people and many machines."_
@@ -88,8 +82,6 @@ _"We have few people and many machines."_
 
 - **M1 Approved state described in one place**: changes are anchored in approved states for the entire fleet
 - **M2 Automatic reconciliation**: automated and centrally managed maintenance
-
----
 
 #### ⚖︎ R5: Regulatory Compliance
 
@@ -106,8 +98,6 @@ _"We need to be able to account for our systems."_
 - **M1 Approved state described in one place**: consistent documentation
 - **M3 Traceable history and rollback**: traceable history and auditing as a natural by-product of all administration
 - **M4 Review and approval of changes**: approval before a change reaches the fleet
-
----
 
 #### ∞ R6: Operational Continuity
 
@@ -128,35 +118,25 @@ _"We depend on continuous operation—even in the event of unexpected external d
 
 Four recurring methods collectively address all the identified scenarios and needs.
 
+Taken together, all four methods are provided by the standardized best practices collected under [OpenGitOps](https://www.cncf.io/projects/opengitops/).
+
+One method is particularly demanding: change management (R2 Predictability) is only fully effective if it also applies to the operating system itself—meaning that the OS can only be changed through the approved pipeline.
+
 ### M1: Approved State Described in One Place
 
 The fleet's approved state is stored as text in a version-controlled repository.
-
-- **Delivers on:** R1 Reliability · R3 Security · R4 Efficient operations · R5 Regulatory compliance · R6 Operational continuity.
 
 ### M2: Automatic Reconciliation
 
 Devices are automatically brought into the described state and kept there.
 
-- **Delivers on:** R1 Reliability · R3 Security · R4 Efficient operations.
-
 ### M3: Traceable History and Rollback
 
 All changes are recorded in the history, can be traced back to a decision, and can be rolled back.
 
-- **Delivers on:** R1 Reliability · R2 Predictability · R3 Security · R5 Regulatory compliance · R6 Operational continuity.
-
 ### M4: Review and Approval of Changes
 
 No change reaches the fleet unexpectedly; everything is proposed, reviewed, and approved first.
-
-- **Delivers on:** R2 Predictability · R5 Regulatory compliance.
-
-Taken together, all four methods are provided by the standardized best practices collected under [OpenGitOps](https://www.cncf.io/projects/opengitops/).
-
-One method is particularly demanding: change management (R2 Predictability) is only fully effective if it also applies to the operating system itself—meaning that the OS can only be changed through the approved pipeline.
-
----
 
 ## General Strategic Principles
 
@@ -202,8 +182,6 @@ flowchart LR
     Agent -->|executes commands on| Machine
 ```
 
----
-
 ### Pattern B: Standardized Declarations
 
 In this pattern, a desired machine state for a whole fleet of machines is defined. The machine is pointed at the right machine state channel, and then keeps itself up to date with the machine state channel.
@@ -248,202 +226,43 @@ During actual development, we strongly suggest that user representatives be incl
 
 ## Standardized Declarations Risks
 
-While envisioning OS2Base following the Standardized Declarations design, the following problem types appeared potentially challenging. We therefore decided to analyze early whether they can be solved within this design:
+While envisioning OS2Base following the Standardized Declarations design, the following problem types appeared potentially challenging. We have analyzed whether each can be solved within this design; solution candidate sketches are documented in [solution_candidates.md](solution_candidates.md).
 
 - The trade-off between system restrictions and end-user needs
 - The need to observe the state of the fleet
 - The ease of use that we need administrators to experience with the system
 - Remotely changing the setup of specific devices rather than the entire fleet
 
----
-
 ### Problem Type: Restricted Systems vs. End-user Needs
 
 We hypothesize that the following experiences will be desired:
 
-🧑‍💻 "I can't write a system declaration for every single employee at city hall, so I'm going to write one declaration that should work for everyone."  
-👸 "I'm curious about trying a vector graphics editor in my workflow. Hopefully, I can simply install and try a program like that without it turning into a major bureaucratic process."
-
-Actors: 👸 End User  - 🧑‍💻 Admin
-
----
-
-#### Solution Design
-
-Example: Early-years school PC at Aarhus Municipality:
-
-```mermaid
-flowchart LR
-    Machine["Machine"]
-    subgraph ownerOS2Base ["OS2Base"]
-        OS2BaseDecl["OS2Base\n(declaration)"]
-    end
-    subgraph ownerOS2Skole ["OS2Skole"]
-        OS2SkolePcDecl["OS2SkolePC\n(declaration)"]
-    end
-    subgraph ownerAarhus ["Aarhus Municipality"]
-        SkoleAtAarhusDecl["Skole@Aarhus\n(declaration)"]
-        IndskolingAtAarhusDecl["Indskoling@Aarhus\n(declaration)"]
-    end
-    Machine -->|follows image stream from| IndskolingAtAarhusDecl
-    IndskolingAtAarhusDecl -->|inherits from| SkoleAtAarhusDecl
-    SkoleAtAarhusDecl -->|inherits from| OS2SkolePcDecl
-    OS2SkolePcDecl -->|inherits from| OS2BaseDecl
-```
-
----
-
-To avoid ending up with one declaration per machine:
-
-##### Addition Pattern
-
-```mermaid
-flowchart LR
-    subgraph Machine ["Machine"]
-        guaranteed["Configuration-aligned state"]
-        compartment["User additions"]
-    end
-```
-
-The administrator may allow the end user to _extend_ their existing software system. However, the end user is never allowed to _remove_ or _modify_ parts of the configuration-aligned state.
-
-For example: User: "I want to be able to install software that is relevant to my use case."  
-Solution: Provide a list of applications that may be installed on the system. These applications must not change any of the parameters on which the administrator relies (existing sandboxing solutions can provide this).
-
-##### Reference Pattern
-
-```mermaid
-flowchart LR
-    subgraph Machine ["Machine"]
-        guaranteed["Configuration-aligned state"]
-    end
-    modifiableSystem["Modifiable System\n(contains user choices)"]
-    guaranteed -->|redirects to| modifiableSystem
-```
-
-Another example: User: "I want to be able to use the correct printer at my office."  
-Solution: Make the system agnostic about the specific printer used by a user. Every machine has access to a long list of printers, with permissions enforced at the printer or network level.
-
----
+**Admin**: "I can't write a system declaration for every single employee at city hall, so I'm going to write one declaration that should work for everyone."  
+**End User**: "I'm curious about trying a vector graphics editor in my workflow. Hopefully, I can simply install and try a program like that without it turning into a major bureaucratic process."
 
 ### Problem: How Do We Know the State of the Fleet?
 
 We hypothesize that the following experiences will be desired:
 
-👸 "Ouch, the computer at the library just crashed! Hopefully, someone is notified quickly."  
-👩‍💼 "Someone set up a fake Wi-Fi network at our office! Fortunately, I can check which networks the office machines have connected to."  
-🧑‍💻 "After our latest update, some people have complained about printer connectivity issues. To determine what is wrong, I really need to see which errors people are encountering on their computers."
-
-Actors: 👸 End User  - 🧑‍💻 Admin  - 👩‍💼 CISO
-
----
-
-#### Solution Design
-
-- Each machine exposes standardized observability data.
-- A central observability system collects all this data.
-- Observability data is converted into a standardized format.
-
-The information flow then becomes:
-
-```mermaid
-flowchart LR
-    Machine -->|pushes standardized usage data to| ObservabilitySystem[Observability system]
-    Machine -->|pulls image stream patches from| ImageRegistry[Image Registry]
-```
-
-Required machine components:
-
-- Machine Data Collector (a component that collects machine behavior, converts it into the standardized usage-data format, and sends it to the observability system)
-- Update Checker (a component that regularly checks for new image patches, downloads them, and applies them to the machine)
-
----
+**End User**: "Ouch, the computer at the library just crashed! Hopefully, someone is notified quickly."  
+**CISO**: "Someone set up a fake Wi-Fi network at our office! Fortunately, I can check which networks the office machines have connected to."  
+**Admin**: "After our latest update, some people have complained about printer connectivity issues. To determine what is wrong, I really need to see which errors people are encountering on their computers."
 
 ### Problem: Seamless Configuration Experience
 
 We hypothesize that the following experiences will be desired:
 
-🧑‍💻 "When I want to change the fleet configuration, I know I can find the correct setting in the configuration interface. It is my one-stop shop for any kind of configuration."  
-🧑‍💻 "I'm sure they use all kinds of complicated technology to make this system work, but fortunately I don't need to learn any of it to change the configuration."  
-👩‍💼 "Some software was recently installed on the fleet, and I did not really know why it was there. Fortunately, I could easily check who added the configuration, who approved it, and when the change was made."  
-👩‍💼 "I want to ensure that none of my employees can change the fleet configuration without someone else reviewing the change."
-
-Actors: 🧑‍💻 Admin  - 👩‍💼 CISO
-
----
-
-#### Solution Design
-
-- Configuration management is based on an existing VCS solution such as Git. **Why?** This gives us traceable history, rollback, and review and approval of changes at no additional cost.
-- As part of OS2fri, a thin layer is created on top of Git to make configuration easier for local administrators.
-- OS2Base provides the UI logic for the configuration interface and investigates the appropriate visual and user-experience design language.
-- The UI logic converts a standardized intermediate format into a UI.
-- Individual OS2fri products expose configuration items in the standardized intermediate format.
-
-```mermaid
-flowchart LR
-    admin["Admin"]
-    configurationUI["Configuration UI"]
-    subgraph gitForge["Git Forge"]
-        localConfiguration["Local Configuration (Git Repo)"]
-    end
-    admin -->|uses| configurationUI
-    configurationUI -->|appends to| localConfiguration
-```
-
-Making the Configuration UI seamless across project boundaries:
-
-```mermaid
-flowchart LR
-    subgraph OS2Base["OS2Base"]
-        uiDeclarationsBase["UI Panel Declarations"]
-    end
-    subgraph OS2BorgerPC["OS2BorgerPC"]
-        uiDeclarationsBorgerPC["UI Panel Declarations"]
-    end
-    configurationUi["Configuration UI"]
-    configurationUi -->|loads UI config from| uiDeclarationsBase
-    configurationUi -->|loads UI config from| uiDeclarationsBorgerPC
-```
-
----
+**Admin**: "When I want to change the fleet configuration, I know I can find the correct setting in the configuration interface. It is my one-stop shop for any kind of configuration."  
+**Admin**: "I'm sure they use all kinds of complicated technology to make this system work, but fortunately I don't need to learn any of it to change the configuration."  
+**CISO**: "Some software was recently installed on the fleet, and I did not really know why it was there. Fortunately, I could easily check who added the configuration, who approved it, and when the change was made."  
+**CISO**: "I want to ensure that none of my employees can change the fleet configuration without someone else reviewing the change."
 
 ### Problem: Remote System Configuration Changes
 
 We hypothesize that the following experiences will be desired:
 
-🧑‍💻 "Machines 100 through 110 are following the 'children's library' channel, but they should all be on the 'adult library' channel now. I can make this change without having to visit the location."  
-🧑‍💻 "When the school year ends, I can easily reset all student machines to their default state so they are ready for new students the following year." ("Powerwash")
-
-Actors: 🧑‍💻 Admin
-
----
-
-#### Solution Design
-
-**Important:** If the "remote" requirement is less strict, other designs are preferable to this one.
-
-```mermaid
-flowchart LR
-subgraph machine["Machine 01 (runs system-a)"]
-    systemA["system-a (running)"]
-end
-subgraph systemAStream["system-a latest declaration"]
-    conf["System A Configuration"]
-    reset["Logic that tells Machine 01 to reset to image system-b"]
-end
-systemA -->|fetches update from| systemAStream
-```
-
-Specific manipulation pathways must be investigated in advance, after which logic for those manipulations is added to the system.
-
-Because a particular system only ever retrieves the same configuration as other systems, the problems can be solved as follows:
-
-- Specific manipulation paths are preconfigured in the image.
-- With every image update, all machines download a list containing the IDs of the machines to which the manipulation must be applied.
-- This means that every machine has a unique, immutable identifier.
-
-**Important:** Changes to individual machines only move the machine to the state of a known, approved image stream.
+**Admin**: "Machines 100 through 110 are following the 'children's library' channel, but they should all be on the 'adult library' channel now. I can make this change without having to visit the location."  
+**Admin**: "When the school year ends, I can easily reset all student machines to their default state so they are ready for new students the following year." ("Powerwash")
 
 # Next Steps
 
@@ -479,7 +298,7 @@ To turn our hypotheses into a successful solution, we recommend the following or
 timeline
     title Next Steps
     1. Preconditions and planning (now) : Approve the direction and framework
-    2. Needs Assessment : Workshops with participating municipalities; workflows, functions, and technically necessary vs. habit-based Microsoft dependencies : Establish requirements and priorities
+    2. Needs Assessment : Workshops with participating municipalities. workflows, functions, and technically necessary vs. habit-based Microsoft dependencies : Establish requirements and priorities
     3. Candidate Selection : Investigate and compare candidate components for each capability : Select components and a steward supplier
     4. Pilot and Scaling Decision : Conduct the pilot against the success criteria : Evaluate and decide whether to scale
     5. Development Lifecycle : If pilot succeeds, start development lifecycle
