@@ -1,12 +1,9 @@
 # The Need for Fleet Management
 
-_Since OS2fri requirements have not yet been collected and documented, this document attempts to outline a number of needs and methods based on accumulated experience with device management in public authorities over the past decade._
-
 ## Needs Assessment
 
-Administrators and operations departments rarely formulate written technical requirements—they experience them through the friction of everyday work. This includes the fundamental challenges of managing many decentralized devices with few people available to perform the work. Based on this, the document describes **the needs of administrators and operations departments** and establishes a set of high-level requirements (R1–R6) and methods (M1–M4).
-The high-level requirements and methods are technology-neutral, ensuring that the document remains valid regardless of the technology used.
-Which technologies can be used to implement the methods is assessed separately for each technology in a separate document: [bootc-reference.md](bootc-reference.md).
+Administrators and operations departments rarely formulate written technical requirements—they experience them through the friction of everyday work. This includes the fundamental challenges of managing many decentralized devices with few people available to perform the work. Based on this, we describe hypotheses on the needs of administrators and operations departments and establish a set of high-level requirements (R1–R6) and methods (M1–M4).
+These high-level requirements and methods are technology-neutral: they remain valid regardless of the technology used.
 
 ### High-Level Requirements
 
@@ -36,9 +33,9 @@ _"The devices should just work."_
 
 ##### Methods that deliver
 
-| ✓ | ✓ | ✓ |
-| :--- | :--- | :-- |
-| **M1 Approved state described in one place** — consistent devices without deviations | **M2 Automatic reconciliation** — automatic and controlled updates; consistent monitoring | **M3 Traceable history and rollback** — rapid recovery and rollback of errors |
+- **M1 Approved state described in one place**: consistent devices without deviations
+- **M2 Automatic reconciliation**: automatic and controlled updates; consistent monitoring
+- **M3 Traceable history and rollback**: rapid recovery and rollback of errors
 
 #### ◎ R2: Predictability
 
@@ -54,9 +51,8 @@ _"Why is the machine failing? Who last changed the configuration?"_
 
 ##### Methods that deliver
 
-| ✓ | ✓ |
-| :--- | :--- |
-| **M3 Traceable history and rollback** — a traceable history that allows every change to be traced back to a decision | **M4 Review and approval of changes** — change management in accordance with the traditional ITIL framework: a change is proposed, reviewed, approved, and merged before being rolled out to the fleet, ensuring that changes are never unexpected |
+- **M3 Traceable history and rollback**: a traceable history that allows every change to be traced back to a decision
+- **M4 Review and approval of changes**: change management in accordance with the traditional ITIL framework: a change is proposed, reviewed, approved, and merged before being rolled out to the fleet, ensuring that changes are never unexpected
 
 ---
 
@@ -72,9 +68,9 @@ _"If a device is attacked, we need to be able to handle it—quickly and effecti
 
 ##### Methods that deliver
 
-| ✓ | ✓ | ✓ |
-| :--- | :--- | :--- |
-| **M1 Approved state described in one place** — a system core that, in practice, cannot be manipulated from the device | **M2 Automatic reconciliation** — rapid and consistent updates across the entire fleet; continuous security reporting | **M3 Traceable history and rollback** — rapid restoration of affected devices to the approved standard state |
+- **M1 Approved state described in one place**: a system core that, in practice, cannot be manipulated from the device
+- **M2 Automatic reconciliation**: rapid and consistent updates across the entire fleet; continuous security reporting
+- **M3 Traceable history and rollback**: rapid restoration of affected devices to the approved standard state
 
 ---
 
@@ -90,9 +86,8 @@ _"We have few people and many machines."_
 
 ##### Methods that deliver
 
-| ✓ | ✓ |
-| :--- | :--- |
-| **M1 Approved state described in one place** — changes are anchored in approved states for the entire fleet | **M2 Automatic reconciliation** — automated and centrally managed maintenance |
+- **M1 Approved state described in one place**: changes are anchored in approved states for the entire fleet
+- **M2 Automatic reconciliation**: automated and centrally managed maintenance
 
 ---
 
@@ -108,9 +103,9 @@ _"We need to be able to account for our systems."_
 
 ##### Methods that deliver
 
-| ✓ | ✓ | ✓ |
-| :--- | :--- | :--- |
-| **M1 Approved state described in one place** — consistent documentation | **M3 Traceable history and rollback** — traceable history and auditing as a natural by-product of all administration | **M4 Review and approval of changes** — approval before a change reaches the fleet |
+- **M1 Approved state described in one place**: consistent documentation
+- **M3 Traceable history and rollback**: traceable history and auditing as a natural by-product of all administration
+- **M4 Review and approval of changes**: approval before a change reaches the fleet
 
 ---
 
@@ -126,24 +121,12 @@ _"We depend on continuous operation—even in the event of unexpected external d
 
 ##### Methods that deliver
 
-| ✓ | ✓ |
-| :--- | :--- |
-| **M1 Approved state described in one place** — the entire stack (code, deployments, and configuration) is described openly and version-controlled in Git, allowing the system to be rebuilt and moved | **M3 Traceable history and rollback** — supplier independence through open standards and formats without proprietary lock-in |
+- **M1 Approved state described in one place**: the entire stack (code, deployments, and configuration) is described openly and version-controlled in Git, allowing the system to be rebuilt and moved
+- **M3 Traceable history and rollback**: supplier independence through open standards and formats without proprietary lock-in
 
 ## Overview of Requirements and Methods
 
-Four recurring methods collectively address all the identified scenarios and needs:
-
-| Requirement | M1<br/>Approved state | M2<br/>Automatic reconciliation | M3<br/>Traceable history and rollback | M4<br/>Review and approval |
-| :--- | :-: | :-: | :-: | :-: |
-| **R1** Reliability | ✓ | ✓ | ✓ | – |
-| **R2** Predictability | – | – | ✓ | ✓ |
-| **R3** Security | ✓ | ✓ | ✓ | – |
-| **R4** Efficient operations | ✓ | ✓ | – | – |
-| **R5** Regulatory compliance | ✓ | – | ✓ | ✓ |
-| **R6** Operational continuity | ✓ | – | ✓ | – |
-
-_✓ = the method can meet the requirement · – = no direct connection_
+Four recurring methods collectively address all the identified scenarios and needs.
 
 ### M1: Approved State Described in One Place
 
@@ -171,44 +154,31 @@ No change reaches the fleet unexpectedly; everything is proposed, reviewed, and 
 
 Taken together, all four methods are provided by the standardized best practices collected under [OpenGitOps](https://www.cncf.io/projects/opengitops/).
 
-One method is particularly demanding: change management (R2 Predictability) is only fully effective if it also applies to the operating system itself—meaning that the OS can only be changed through the approved pipeline. Whether a technology can provide this is assessed in [bootc-reference.md](bootc-reference.md).
+One method is particularly demanding: change management (R2 Predictability) is only fully effective if it also applies to the operating system itself—meaning that the OS can only be changed through the approved pipeline.
 
 ---
 
 ## General Strategic Principles
 
-_The project should operate within national and international architecture and delivery principles to ensure a robust, future-proof solution._
+We recommend that the OS2fri programme follow these principles. This way, it can ensure a robust, future-proof solution.
 
 ### ∞ R7: Maximize Resources Through Reuse
 
-_"We must maximize the resources used to deliver value to public authorities rather than maintaining home-grown infrastructure solutions when an international standard already exists."_
+In order to maximize the resources used to deliver value to public authorities, we recommend:
 
-> Follow recognized architectural standards and principles. Reuse recognized standard metrics for viability and security before deciding whether to reuse technologies.
+- Follow recognized architectural standards and principles.
+- Reuse recognized standard metrics for viability and security before deciding whether to reuse technologies.
+- Avoid maintaining home-grown infrastructure solutions where an international standard already exists.
+- Seek out international suppliers, especially in areas where Danish expertise is rare.
 
 ### ፠ R8: Digital Sovereignty and Ownership by Design
 
-_"As public authorities, we must own 100% of the solution ourselves so that we are prepared for external changes that may affect our operational continuity."_
+To be prepared for external changes that may affect the operational continuity of the OS2fri programme, we recommend:
 
-> Every part of the solution—from documentation, source code, deployment manifests, and templates to the task management that defines the delivery—must be transparent, managed, and owned by the OS2 authorities themselves.
+- Every part of the solution—from documentation, source code, deployment manifests, and templates to the task management that defines the delivery—must be transparent, managed, and owned by the OS2 authorities themselves.
+- Take ownership of the systems that store and manage information related to the OS2fri programme.
 
-### ༄ R9: Build for the Future According to Recognized Principles
-
-_"To save time and money, we must reuse the appropriate national and international architectural principles instead of allowing a supplier or a powerful individual stakeholder to control development and distort the delivery of value to the community."_
-
-> To deliver broad value to the authorities in the OS2 community fairly and in solidarity, we must be guided by the vast collective experience of developing and delivering software that is freely available in the international literature on architectural patterns and models. OS2 exists to deliver value to Denmark's public sector, not to invent new infrastructure from scratch.
-
-# Risk Analysis
-
-## Significant Risks and Mitigations
-
-| Risk | Consequence | Mitigation |
-|---|---|---|
-| Target-state agreements contain assumptions about direct one-to-one functionality with the "as-is" state | Misallocated resources and failure to deliver | Task-based success criterion: "Can users perform the same piece of work?" |
-| Funds are spent exclusively on user-facing functionality without sovereign infrastructure | Lock-in to a new single supplier without an exit strategy | Steward contract, sovereign forge, and task-based success criteria from the outset |
-| The belief that sovereignty only concerns the supplier's nationality | Control over neither code, build chain, nor operations ("black-box" operations) | Ownership of the **entire** delivery chain: source code, documentation, and infrastructure under OS2 |
-| Everything is placed on GitHub, a Big Tech-owned platform | "Red button" risk: access to the project's complete delivery may be restricted without warning | An OS2-owned, digitally sovereign forge |
-| Unknown user needs determine component selection | Incorrect priorities and costly reselection | Needs assessment as a mandatory first step before selecting candidates |
-| Pre-pilots are manual and dependent on specific individuals | No operational continuity or scalability | Automated deployment and monitoring through OS2Base |
+# Fleet Management Analysis
 
 ## Feasibility of (Declarative) Fleet Management
 
@@ -248,49 +218,37 @@ flowchart LR
     Admin(("admin")) -->|updates declaration on| ImageStream
 ```
 
-We hypothesize that Pattern B is more suitable for OS2fri's use case.
+We hypothesize that a design based on Pattern B, Standardized Declarations, is more suitable for OS2fri's use case.
 
 **Why?** Reliability, Security, Efficient Operations, Regulatory Compliance, Operational Continuity
 
-At first glance, Pattern A seems well suited to support the needs of OS2fri. Nonetheless, we investigated the consequences of extending Pattern B so that it solves all the problems relevant to OS2fri that require interactions with individual machines.
+- Only the "Standardized Declarations" pattern strictly guarantees that there is an approved system state described in a single location (a single source of truth) → Delivers on Reliability, Security, Efficient Operations, Regulatory Compliance, and Operational Continuity.
 
-**Why?**
-
-- It ensures that there is an approved system state described in a single location (a single source of truth) → Delivers on Reliability, Security, Efficient Operations, Regulatory Compliance, and Operational Continuity.
-
-We want to avoid:
+With Standardized Declarations, we can, by design, reduce the risk of the following events:
 
 - Machines beginning to deviate slightly ("drift") from one another, with only the person who made the change understanding how.
 - Undocumented changes to some machines causing update compatibility problems.
 - Unauthorized actors compromising the all-powerful actor and making dangerous changes to the system.
 - Knowledge of how systems work being lost when municipalities change suppliers or key employees change jobs.
 
-We want:
+And we can help ensure:
 
 - Every machine to be returnable to its desired state.
-- It to be easy to document which software runs on the fleet and how it is configured.
+- It becomes easy to document which software runs on the fleet and how it is configured.
 
-We will now describe how we solve individual problems within the confines of Pattern B.
-
----
+At first glance, Pattern A seems well suited to support the needs of OS2fri. Nonetheless, because of these advantages, we investigated the consequences of extending Pattern B (Standardized Declarations) into a design that solves some of the problems relevant to OS2fri, where interactions with individual machines are required.
 
 ## Note on Problem Speculations
 
-A software system should be designed to solve specific problems.
-During the design process for OS2fri, one Product Owner of a related project was part of the team, but otherwise we were not able to talk to the actual participants of the system.
+Rather than replicating an existing solution one-to-one, a software system like OS2fri should be designed to solve specific problems.
+During the design process for OS2fri, one Product Owner of a related project was part of the team, but otherwise we were not able to talk to the actual participants of the system. For example, we do not yet fully understand the administrative employees' actual workflows, priorities, and habits.
 Therefore, we are _speculating_ about which problems are important enough to discuss here.
 
-During actual development, user representatives must be included so that the actual problems can be investigated and prioritized.
-
-The project's current target states are based on several explicit assumptions rather than measured user needs or data:
-
-- We do not yet fully understand the administrative employees' actual workflows, priorities, and habits. The feature set for a "light administrative user" can therefore only be defined after conducting a needs assessment with the participating authorities.
-- Existing dependencies on Microsoft, Google, line-of-business systems, etc. must be separated into what is **technically necessary** and what derives from existing **workflows, templates, or habits**—only then will it become clear what genuinely needs to be recreated.
-- Component selection for the solution must prioritize demonstrable security, compliance, interoperability, scalability, and digital sovereignty/data ownership. These parameters help put the target state into perspective and establish strong guardrails against risky decisions based on assumptions about the "to-be" solution.
+During actual development, we strongly suggest that user representatives be included, so that the actual problems can be investigated and prioritized. (See "Next Steps" section for reference.)
 
 ## Standardized Declarations Risks
 
-While envisioning OS2Base, the following problem types appeared potentially challenging, so we decided to analyze early whether they can be solved within the Standardized Declarations pattern:
+While envisioning OS2Base following the Standardized Declarations design, the following problem types appeared potentially challenging. We therefore decided to analyze early whether they can be solved within this design:
 
 - The trade-off between system restrictions and end-user needs
 - The need to observe the state of the fleet
@@ -301,11 +259,12 @@ While envisioning OS2Base, the following problem types appeared potentially chal
 
 ### Problem Type: Restricted Systems vs. End-user Needs
 
-👸 End User  
-🧑‍💻 Admin
+We hypothesize that the following experiences will be desired:
 
 🧑‍💻 "I can't write a system declaration for every single employee at city hall, so I'm going to write one declaration that should work for everyone."  
 👸 "I'm curious about trying a vector graphics editor in my workflow. Hopefully, I can simply install and try a program like that without it turning into a major bureaucratic process."
+
+Actors: 👸 End User  - 🧑‍💻 Admin
 
 ---
 
@@ -369,13 +328,13 @@ Solution: Make the system agnostic about the specific printer used by a user. Ev
 
 ### Problem: How Do We Know the State of the Fleet?
 
-👸 End User  
-🧑‍💻 Admin  
-👩‍💼 CISO
+We hypothesize that the following experiences will be desired:
 
 👸 "Ouch, the computer at the library just crashed! Hopefully, someone is notified quickly."  
 👩‍💼 "Someone set up a fake Wi-Fi network at our office! Fortunately, I can check which networks the office machines have connected to."  
 🧑‍💻 "After our latest update, some people have complained about printer connectivity issues. To determine what is wrong, I really need to see which errors people are encountering on their computers."
+
+Actors: 👸 End User  - 🧑‍💻 Admin  - 👩‍💼 CISO
 
 ---
 
@@ -402,15 +361,14 @@ Required machine components:
 
 ### Problem: Seamless Configuration Experience
 
-🧑‍💻 Admin  
-👩‍💼 CISO
-
-Predicted problems:
+We hypothesize that the following experiences will be desired:
 
 🧑‍💻 "When I want to change the fleet configuration, I know I can find the correct setting in the configuration interface. It is my one-stop shop for any kind of configuration."  
 🧑‍💻 "I'm sure they use all kinds of complicated technology to make this system work, but fortunately I don't need to learn any of it to change the configuration."  
 👩‍💼 "Some software was recently installed on the fleet, and I did not really know why it was there. Fortunately, I could easily check who added the configuration, who approved it, and when the change was made."  
 👩‍💼 "I want to ensure that none of my employees can change the fleet configuration without someone else reviewing the change."
+
+Actors: 🧑‍💻 Admin  - 👩‍💼 CISO
 
 ---
 
@@ -452,12 +410,12 @@ flowchart LR
 
 ### Problem: Remote System Configuration Changes
 
-🧑‍💻 Admin
-
-Predicted problems:
+We hypothesize that the following experiences will be desired:
 
 🧑‍💻 "Machines 100 through 110 are following the 'children's library' channel, but they should all be on the 'adult library' channel now. I can make this change without having to visit the location."  
 🧑‍💻 "When the school year ends, I can easily reset all student machines to their default state so they are ready for new students the following year." ("Powerwash")
+
+Actors: 🧑‍💻 Admin
 
 ---
 
@@ -488,6 +446,28 @@ Because a particular system only ever retrieves the same configuration as other 
 **Important:** Changes to individual machines only move the machine to the state of a known, approved image stream.
 
 # Next Steps
+
+## Process-related Risks and Mitigations
+
+### Risk 1: Target-state agreements assume direct one-to-one functionality
+
+- **Consequence:** Misallocated resources and failure to deliver
+- **Mitigation:** Task-based success criterion: "Can users perform the same piece of work?"
+
+### Risk 2: Funds spent exclusively on user-facing functionality
+
+- **Consequence:** Lock-in to a new single supplier without an exit strategy
+- **Mitigation:** Steward contract, sovereign forge, and task-based success criteria from the outset
+
+### Risk 3: Unknown user needs determine component selection
+
+- **Consequence:** Incorrect priorities and costly reselection
+- **Mitigation:** Needs assessment as a mandatory first step before selecting candidates
+
+### Risk 4: Pre-pilots are manual and dependent on specific individuals
+
+- **Consequence:** No operational continuity or scalability
+- **Mitigation:** Automated deployment and monitoring through OS2Base
 
 ## Timeline
 
