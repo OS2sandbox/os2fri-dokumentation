@@ -10,14 +10,21 @@ Hvilke teknologier der kan anvendes til at implementere metoderne, vurderes sepe
 ### Højniveau-krav
 
 ```mermaid
+
 flowchart LR
     r1["✓ Pålidelighed"]
     r2["◎ Forudsigelighed"]
+
     r3["⛨︎ Sikkerhed"]
+
     r4["⚙︎ Effektiv drift"]
-    r5["⚖︎ Efterlevelse af lovgivnhed"]
+
+    r5["⚖︎ Efterlevelse af lovgivning"]
+
     r6["∞ Driftskontinuitet"]
-    r1 --> r2 --> r3 r4 --> r5 --> r6
+
+    r1 ~~~ r2 ~~~ r3
+    r4 ~~~ r5 ~~~ r6
   
 ```
 
