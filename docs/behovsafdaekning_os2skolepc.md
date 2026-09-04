@@ -1,9 +1,9 @@
-**Behovsafdækning OS2skolePC**
+# Behovsafdækning OS2skolePC
 
 *version 0.8 (kladde)*
 
 
-**Brugerne**
+## Brugerne
 
 - Elever i indskolingen (0. – 3. klasse) - Bruger i mindre omfang Chromebooks og Windows-PC’er ... iPads er meget udbredt.
 
@@ -21,7 +21,7 @@
 
 
 
-**Skoledagen**
+## Skoledagen
 
 Devices bruges af alle elever og lærere, samt andre medarbejdere på skolen.
 
@@ -51,14 +51,14 @@ Logge ind – Læse/skrive – browse – modtage undervisning/opgaver – samar
 
 
 
-**User Stories**
+## User Stories
 
-- **Anskaffelse**
+**Anskaffelse**
 
 - Som kommune vil jeg kunne anskaffe prækonfigurerede enheder uden unødig binding til én leverandør/platform.
 
 
-- **Modtagelse**
+**Modtagelse**
 
 - Som kommune/skole vil jeg kunne modtage 1.000 nye enheder uden manuelt at håndtere hvert enkelt.
 
@@ -68,7 +68,7 @@ Logge ind – Læse/skrive – browse – modtage undervisning/opgaver – samar
 - Som kommune/skole vil jeg kunne konfigurere enheder automatisk ud fra skole, bruger og rolle
 
 
-- **Udlevering**
+**Udlevering**
 
 - Som skole vil jeg kunne udlevere en enhed til en elev på få minutter.
 
@@ -78,7 +78,7 @@ Logge ind – Læse/skrive – browse – modtage undervisning/opgaver – samar
 - Som elev vil jeg kunne tage en ny enhed i brug uden teknisk hjælp.
 
 
-- **Identitet**
+**Identitet**
 
 - Som elev vil jeg opleve, at mine rettigheder, data og arbejdsrum følger **mig** – ikke kun maskinen.
 
@@ -88,7 +88,7 @@ Logge ind – Læse/skrive – browse – modtage undervisning/opgaver – samar
 - Som elev vil jeg kunne deltage i undervisningen uden at teknologien tager fokus/bliver en barriere.
 
 
-- **Lærer – login**
+**Lærer – login**
 
 - Som lærer vil jeg kunne hjælpe 26 0.-klasses-elever med at logge ind nemt og hurtigt.
 
@@ -154,7 +154,7 @@ Logge ind – Læse/skrive – browse – modtage undervisning/opgaver – samar
 
 **LST-kompabilitet (læse-skrive teknologier)**
 
-**Som elev med behov for LST-værktøjer vil jeg kunne anvende mine nødvendige hjælpemidler på skolens device, så jeg kan deltage på lige vilkår uden at være afhængig af en bestemt hardwaremodel.**
+- Som elev med behov for LST-værktøjer vil jeg kunne anvende mine nødvendige hjælpemidler på skolens device, så jeg kan deltage på lige vilkår uden at være afhængig af en bestemt hardwaremodel.
 
 
 **Løbende LST-kompabilitet**
@@ -188,7 +188,7 @@ Som kommune vil jeg kunne skifte device-/OS-/managementplatform uden at skulle u
 
 
 
-**Skala**
+## Skala
 
 **De kommunale folkeskoler har 500.000 elever og 40.000 lærere**
 
@@ -198,7 +198,7 @@ Som kommune vil jeg kunne skifte device-/OS-/managementplatform uden at skulle u
 
 
 
-**Device journey**
+## Device journey
 
 **Enhedsrejsen og Life Cycle**
 
@@ -227,26 +227,11 @@ Udfasning → datasletning → genbrug/genanvendelse
 proces/forløb er stadig under afklaring ... umiddelbart har Google og Apple en proces vi kan lade os inspirere af, hvorimod Microsoft er mere omstændigt
 
 
-
-
-
-
-
-
-
-
-
-**Device landskabet**
-
-
-
+## Device landskabet
 
 **Device management **
 
-**(i relation til afsnittet om Device journey)**
-
-
-**Klargøring og deployment:**
+### Klargøring og deployment
 
 Indkøb → registrering → mærkning/tagging → enrollment → policies → image/software → bruger → udlevering
 
@@ -257,36 +242,36 @@ Indkøb → registrering → mærkning/tagging → enrollment → policies → i
 *Der skal oprettes en elev login konto på enheden ved den første individuelle login på netværket.*
 
 
-**Daglig device management:**
+### Daglig device management
 
 MDM/UEM – policies – opdatering; OS/image – browserstyring – inventory – låsning/wipe – compliance 
 
 *Powerwash fra Google - er meget brugt og populær*
 
 
-**Drift, support, life cycle:**
+### Drift, support, life cycle
 
 Lokal support – help desk – reparation – reservedele – låne-devices – tab/tyveri – udfasning 
 
 
-**Device management i skolerne i dag – Vurderinger og bemærkninger**
+### Device management i skolerne i dag – Vurderinger og bemærkninger
 
 **Google Admin**
 
 - Fungerer ok – Ikke alle er imponerede ... Har udfordringer med at idenficere brugeren ift. devicet.
 
 
-- **Microsoft Intune**
+**Microsoft Intune**
 
 - Vi har ikke talt med nogen der ser det som en god løsning.
 
 
-- **Apple School Manager**
+**Apple School Manager**
 
 - Fungere angiveligt godt – Skolerne er glade for den funktion til at koble bruger og device.
 
 
-- **Lightspeed**
+**Lightspeed**
 
 - Bruges mange steder til iPads – Skoler virker glade for løsningen.
 
@@ -296,12 +281,12 @@ Lokal support – help desk – reparation – reservedele – låne-devices –
 - Bruges mange steder til iPads/MacBooks – Man kan nemt få overblik over hvor enhederne ér.
 
 
-- **AirWatch**
+**AirWatch**
 
 - iPads og Macbooks
 
 
-- **Relution**
+**Relution**
 
 - Kan håndtere enheder fra Apple, Google, Microsoft (mv.) 
 
