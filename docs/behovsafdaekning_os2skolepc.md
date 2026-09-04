@@ -6,17 +6,11 @@
 ## Brugerne
 
 - Elever i indskolingen (0. – 3. klasse) - Bruger i mindre omfang Chromebooks og Windows-PC’er ... iPads er meget udbredt.
-
 - Elever på mellemtrinnet (4. – 6. klasse) - Alle elever har deres egen Chromebook/Windows-PC (1:1)  
-
 - Elever i udskolingen (7. – 9. klasse) - Alle elever har deres egen Chromebook/Windows-PC (1:1) ... (efter konfirmation medbringer nogle egne devices (fx Macbooks) 
-
 - Lærere og de pædagogiske it-vejledere - It-vejlederne er selv lærere, og skolernes lokale superbrugere og it-supportere 
-
 - Pædagoger og andre undervisere - Skolepædagoger, SFO-pædagoger, specialpædagoger, pædagogmedhjælpere, faste undervisere uden læreruddannelse, faste vikarer, vikarer og lærerstuderende
-
 - Skolens administration og ledelse - Sidder idag i et administrativt Microsoft-miljø, men burde have bedre adgang til undervisningsmiljøet og nærhed til lærerne
-
 - Kommunens centrale skole- og it-afdelinger - Sidder idag i et Microsoft-miljø, men burde have bedre adgang til undervisningsmiljøet og nærhed til lærerne
 
 
@@ -159,7 +153,7 @@ Logge ind – Læse/skrive – browse – modtage undervisning/opgaver – samar
 
 **Løbende LST-kompabilitet**
 
-Som skole/kommune vil jeg løbende kunne verificere, at godkendte devices, OS-versioner og opdateringer fortsat understøtter de LST-værktøjer, eleverne anvender.
+- Som skole/kommune vil jeg løbende kunne verificere, at godkendte devices, OS-versioner og opdateringer fortsat understøtter de LST-værktøjer, eleverne anvender.
 
 
 **Offline**
@@ -174,7 +168,7 @@ Som skole/kommune vil jeg løbende kunne verificere, at godkendte devices, OS-ve
 
 **Genbrug**
 
-Som skole/kommune vil jeg kunne forlænge levetiden eller genanvende enheder.
+- Som skole/kommune vil jeg kunne forlænge levetiden eller genanvende enheder.
 
 
 **Udfasning**
@@ -184,7 +178,7 @@ Som skole/kommune vil jeg kunne forlænge levetiden eller genanvende enheder.
 
 **Platform-skift**
 
-Som kommune vil jeg kunne skifte device-/OS-/managementplatform uden at skulle udskifte hele det digitale skoleøkosystem.
+- Som kommune vil jeg kunne skifte device-/OS-/managementplatform uden at skulle udskifte hele det digitale skoleøkosystem.
 
 
 
@@ -227,9 +221,7 @@ Udfasning → datasletning → genbrug/genanvendelse
 proces/forløb er stadig under afklaring ... umiddelbart har Google og Apple en proces vi kan lade os inspirere af, hvorimod Microsoft er mere omstændigt
 
 
-## Device landskabet
-
-**Device management **
+## Device landskabet & Device management
 
 ### Klargøring og deployment
 
@@ -296,7 +288,7 @@ Lokal support – help desk – reparation – reservedele – låne-devices –
 Asset management system – Enhedernes historik, udlånskontrakter og sager i forhold til reparation mv.
 
 
-*Vi skal have afdækket fordele og ulemper ved at brugeren og enheden er knyttet til hinanden eller ej ... *
+*Vi skal have afdækket fordele og ulemper ved at brugeren og enheden er knyttet til hinanden eller ej ...*
 
 
 **Vores antagelse ér at tage det bedste fra Google og Apple/Jamf mv. til OS2skoles device management-løsning**
