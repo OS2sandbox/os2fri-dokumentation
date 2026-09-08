@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>Arkitekturkort</title>
+<style>:root {
+  --bg: #0a0f14;
+  --panel: #111820;
+  --border: #253040;
+  --text: #e6edf3;
+  --muted: #93a4b8;
+  --edge: #7d8ea3;
+  --accent: #4c9aff;
+}
+/* The diagram keeps the palette it was exported with; only the surrounding
+   chrome follows the reader's system theme. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --panel: #ffffff;
+    --border: #d5dde7;
+    --text: #10171f;
+    --muted: #566173;
+    --edge: #64748b;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  display: flex; flex-direction: column;
+  background: var(--bg); color: var(--text);
+  font: 13px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.bar {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 10px 14px; background: var(--panel); border-bottom: 1px solid var(--border);
+}
+.bar h1 { font-size: 14px; margin: 0; font-weight: 650; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 4px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--border); background: transparent; color: var(--muted);
+  font: inherit; font-size: 12px;
+}
+.tab[aria-current] { color: var(--text); border-color: var(--accent); }
+.tab-type { font-size: 10px; opacity: 0.6; }
+.tools { margin-left: auto; display: flex; gap: 6px; }
+.tools input, .tools button {
+  font: inherit; font-size: 12px; padding: 4px 9px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent; color: var(--text);
+}
+.tools button { cursor: pointer; }
+.canvas { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.stage { position: absolute; inset: 0; }
+.stage[hidden] { display: none; }
+.stage svg { width: 100%; height: 100%; touch-action: none; cursor: grab; }
+.stage svg.grabbing { cursor: grabbing; }
+.node { cursor: pointer; }
+.node text { pointer-events: none; }
+.n-type { font-size: 9px; font-weight: 700; letter-spacing: 0.09em; opacity: 0.72; }
+.n-name { font-size: 14px; font-weight: 650; }
+.n-tech { font-size: 11px; font-style: italic; opacity: 0.8; }
+.n-desc { font-size: 11.5px; opacity: 0.85; }
+.node.dim { opacity: 0.18; }
+.node.hit rect { stroke-width: 3; }
+.node.selected rect { stroke: var(--accent); stroke-width: 3; }
+.node:focus-visible rect { stroke: var(--accent); stroke-width: 3; }
+.node:focus { outline: none; }
+.rect rect { fill: none; stroke: var(--border); stroke-width: 1.4; }
+.rect.boundary rect { stroke-dasharray: 6 5; }
+.rect.group rect { stroke-dasharray: 2 6; }
+.r-label { font-size: 12px; font-weight: 600; fill: var(--muted); }
+.r-sub { font-size: 10px; letter-spacing: 0.08em; fill: var(--muted); opacity: 0.75; }
+.e-label {
+  font-size: 10.5px; fill: var(--muted);
+  paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round;
+}
+.details {
+  position: absolute; top: 62px; right: 14px; width: min(300px, 42vw); max-height: 70%;
+  overflow: auto; padding: 12px 14px; border-radius: 10px;
+  background: var(--panel); border: 1px solid var(--border);
+}
+.details h2 { margin: 0 0 2px; font-size: 14px; }
+.details dl { margin: 10px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; }
+.details dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+.details dd { margin: 0; overflow-wrap: anywhere; }
+.details .kind { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+.details button, .details a {
+  display: inline-block; margin-top: 10px; margin-right: 8px; padding: 4px 9px;
+  border-radius: 6px; border: 1px solid var(--border); background: transparent;
+  color: var(--text); font: inherit; font-size: 12px; cursor: pointer; text-decoration: none;
+}
+.foot {
+  display: flex; gap: 10px; padding: 6px 14px; font-size: 11px; color: var(--muted);
+  background: var(--panel); border-top: 1px solid var(--border);
+}
+.grow { flex: 1; }
+.empty { padding: 32px; text-align: center; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) {
+  .node.dim, .node.selected rect { transition: opacity 120ms ease, stroke 120ms ease; }
+}</style>
+</head>
+<body>
+<header class="bar">
+<h1>Arkitekturkort</h1>
+<div class="tabs" role="tablist"><button type="button" class="tab" data-view="OuojNzSQ" aria-current="page">Arkitekturkort<span class="tab-type">systemLandscape</span></button><button type="button" class="tab" data-view="SystemContext-SystemContext">SystemContext-SystemContext<span class="tab-type">systemContext</span></button></div>
+<div class="tools">
+<input id="q" type="search" placeholder="Search" aria-label="Search elements" autocomplete="off">
+<button type="button" id="back" hidden>Back</button>
+<button type="button" id="fit">Fit</button>
+</div>
+</header>
+<main class="canvas"><div class="stage" data-view="OuojNzSQ"><svg viewBox="0 0 1816 2049.5" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Arkitekturkort"><defs><marker id="c4-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--edge)"/></marker></defs><g class="viewport"><g class="edge" data-edge="0"><line x1="268" y1="275.15" x2="548" y2="279.35" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="408" y="272.25" text-anchor="middle">Bruger computerne med bootc image</text></g><g class="edge" data-edge="1"><line x1="268" y1="1914.15" x2="548" y2="1820.35" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="408" y="1862.25" text-anchor="middle">Administrerer via konsollen</text></g><g class="edge" data-edge="2"><line x1="268" y1="1938.83" x2="1548" y2="1797.17" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="908" y="1863" text-anchor="middle">Administrerer identiteter og roller</text></g><g class="edge" data-edge="3"><line x1="722.09" y1="1725.5" x2="1093.91" y2="1389" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="908" y="1552.25" text-anchor="middle">Foretager Git commits / interagerer med f...</text></g><g class="edge" data-edge="4"><line x1="675.3" y1="1725.5" x2="1140.25" y2="167" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="907.78" y="941.25" text-anchor="middle">Henter og viser indhold fra asset management</text></g><g class="edge" data-edge="5"><line x1="768" y1="1783.67" x2="1548" y2="1784.84" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="1158" y="1779.26" text-anchor="middle">Autentificerer brugere mod</text></g><g class="edge" data-edge="6"><line x1="1221.88" y1="1389" x2="1592.47" y2="1725.5" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="1407.18" y="1552.25" text-anchor="middle">Validerer identitet / tokens</text></g><g class="edge" data-edge="7"><line x1="685.62" y1="339" x2="1130.38" y2="1273" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="908" y="801" text-anchor="middle">Anvender pre-byggede images fra</text></g><g class="edge" data-edge="8"><line x1="768" y1="1401.59" x2="1048" y2="1350.91" stroke="var(--edge)" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#c4-arrow)"/></g><g class="edge" data-edge="9"><line x1="746.63" y1="1117.5" x2="1048" y2="1273.91" stroke="var(--edge)" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#c4-arrow)"/></g><g class="edge" data-edge="10"><line x1="695.74" y1="767.5" x2="1110.42" y2="1273" stroke="var(--edge)" stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#c4-arrow)"/></g><g class="edge" data-edge="11"><line x1="768" y1="242.83" x2="1048" y2="145.67" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="908" y="189.25" text-anchor="middle">Indrapporterer til</text></g><g class="edge" data-edge="12"><line x1="768" y1="316.86" x2="1048" y2="408.14" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="908" y="357.5" text-anchor="middle">Logger til</text></g><g class="edge" data-edge="13"><line x1="696.56" y1="339" x2="1618.44" y2="1725.5" stroke="var(--edge)" stroke-width="1.6" marker-end="url(#c4-arrow)"/><text class="e-label" x="1157.5" y="1027.25" text-anchor="middle">Kan anvende</text></g><g class="node" data-id="user" tabindex="0" role="button" aria-label="Person: Anvender"><rect x="48" y="223" width="220" height="101" rx="8" fill="#08427b" stroke="#f59e0b" stroke-width="1.5"/><text class="n-type" x="62" y="250" fill="#ffffff">PERSON</text><text class="n-name" x="62" y="274" fill="#ffffff">Anvender</text><text class="n-desc" x="62" y="295" fill="#ffffff">En almindelig bruger af</text><text class="n-desc" x="62" y="310" fill="#ffffff">systemet.</text></g><g class="node" data-id="admin" tabindex="0" role="button" aria-label="Person: Administrator"><rect x="48" y="1900.5" width="220" height="101" rx="8" fill="#08427b" stroke="#f59e0b" stroke-width="1.5"/><text class="n-type" x="62" y="1927.5" fill="#ffffff">PERSON</text><text class="n-name" x="62" y="1951.5" fill="#ffffff">Administrator</text><text class="n-desc" x="62" y="1972.5" fill="#ffffff">En administrator der</text><text class="n-desc" x="62" y="1987.5" fill="#ffffff">administrerer platformen.</text></g><g class="node" data-id="computers" tabindex="0" role="button" aria-label="Software System: Enheder"><rect x="548" y="223" width="220" height="116" rx="8" fill="#1168bd" stroke="#3b82f6" stroke-width="1.5"/><text class="n-type" x="562" y="250" fill="#ffffff">SOFTWARE SYSTEM</text><text class="n-name" x="562" y="274" fill="#ffffff">Enheder</text><text class="n-desc" x="562" y="295" fill="#ffffff">Computere ude hos anvederne med</text><text class="n-desc" x="562" y="310" fill="#ffffff">det installerede bootc base</text><text class="n-desc" x="562" y="325" fill="#ffffff">image.</text></g><g class="node" data-id="imageFactory" tabindex="0" role="button" aria-label="Software System: Image og konfig Fabrik"><rect x="1048" y="1273" width="220" height="116" rx="8" fill="#08427b" stroke="#3b82f6" stroke-width="1.5"/><text class="n-type" x="1062" y="1300" fill="#ffffff">SOFTWARE SYSTEM</text><text class="n-name" x="1062" y="1324" fill="#ffffff">Image og konfig Fabrik</text><text class="n-desc" x="1062" y="1345" fill="#ffffff">Git Forge med iamge registry</text><text class="n-desc" x="1062" y="1360" fill="#ffffff">Håndterer kildekode, CI/CD</text><text class="n-desc" x="1062" y="1375" fill="#ffffff">pipelines og opbevaring af de...</text></g><g class="node" data-id="webConsole" tabindex="0" role="button" aria-label="Software System: Konfigurations App"><rect x="548" y="1725.5" width="220" height="116" rx="8" fill="#1168bd" stroke="#3b82f6" stroke-width="1.5"/><text class="n-type" x="562" y="1752.5" fill="#ffffff">SOFTWARE SYSTEM</text><text class="n-name" x="562" y="1776.5" fill="#ffffff">Konfigurations App</text><text class="n-desc" x="562" y="1797.5" fill="#ffffff">En samlet, forenklet web</text><text class="n-desc" x="562" y="1812.5" fill="#ffffff">frontend der tilbyder Git</text><text class="n-desc" x="562" y="1827.5" fill="#ffffff">commits for uerfarne brugere...</text></g><g class="node" data-id="keycloak" tabindex="0" role="button" aria-label="Software System: Identitets og Adgangsstyring"><rect x="1548" y="1725.5" width="220" height="119" rx="8" fill="#777777" stroke="#3b82f6" stroke-width="1.5"/><text class="n-type" x="1562" y="1752.5" fill="#ffffff">SOFTWARE SYSTEM</text><text class="n-name" x="1562" y="1776.5" fill="#ffffff">Identitets og</text><text class="n-name" x="1562" y="1794.5" fill="#ffffff">Adgangsstyring</text><text class="n-desc" x="1562" y="1815.5" fill="#ffffff">Identitets- og adgangsstyring</text><text class="n-desc" x="1562" y="1830.5" fill="#ffffff">(IdP).</text></g><g class="node" data-id="inventory" tabindex="0" role="button" aria-label="Software System: Inventory / Asset Management"><rect x="1048" y="48" width="220" height="119" rx="8" fill="#777777" stroke="#3b82f6" stroke-width="1.5"/><text class="n-type" x="1062" y="75" fill="#ffffff">SOFTWARE SYSTEM</text><text class="n-name" x="1062" y="99" fill="#ffffff">Inventory / Asset</text><text class="n-name" x="1062" y="117" fill="#ffffff">Management</text><text class="n-desc" x="1062" y="138" fill="#ffffff">Backend-system til styring af</text><text class="n-desc" x="1062" y="153" fill="#ffffff">aktiver og ressourcer.</text></g><g class="node" data-id="newExternalSystem" tabindex="0" role="button" aria-label="Software System: OS2AdmPC definition/beskrivelse"><rect x="548" y="1375.5" width="220" height="92" rx="8" fill="#114433" stroke="#3b82f6" stroke-width="1.5"/><text class="n-type" x="562" y="1402.5" fill="#ffffff">SOFTWARE SYSTEM</text><text class="n-name" x="562" y="1426.5" fill="#ffffff">OS2AdmPC</text><text class="n-name" x="562" y="1444.5" fill="#ffffff">definition/beskrivelse</text></g><g class="node" data-id="newSystem" tabindex="0" role="button" aria-label="Software System: OS2BorgerPC definition/beskrivelse"><rect x="548" y="675.5" width="220" height="92" rx="8" fill="#114433" stroke="#3b82f6" stroke-width="1.5"/><text class="n-type" x="562" y="702.5" fill="#ffffff">SOFTWARE SYSTEM</text><text class="n-name" x="562" y="726.5" fill="#ffffff">OS2BorgerPC</text><text class="n-name" x="562" y="744.5" fill="#ffffff">definition/beskrivelse</text></g><g class="node" data-id="newSystem2" tabindex="0" role="button" aria-label="Software System: OS2SkolePC definition/beskrivelse"><rect x="548" y="1025.5" width="220" height="92" rx="8" fill="#114433" stroke="#3b82f6" stroke-width="1.5"/><text class="n-type" x="562" y="1052.5" fill="#ffffff">SOFTWARE SYSTEM</text><text class="n-name" x="562" y="1076.5" fill="#ffffff">OS2SkolePC</text><text class="n-name" x="562" y="1094.5" fill="#ffffff">definition/beskrivelse</text></g><g class="node" data-id="newSystem22" tabindex="0" role="button" aria-label="Software System: Overvågning"><rect x="1048" y="398" width="220" height="92" rx="8" fill="#777777" stroke="#3b82f6" stroke-width="1.5"/><text class="n-type" x="1062" y="425" fill="#ffffff">SOFTWARE SYSTEM</text><text class="n-name" x="1062" y="449" fill="#ffffff">Overvågning</text><text class="n-desc" x="1062" y="470" fill="#ffffff">Observability stack</text></g></g></svg></div><div class="stage" data-view="SystemContext-SystemContext" hidden><svg viewBox="0 0 1100 680" preserveAspectRatio="xMidYMid meet" role="img" aria-label="SystemContext-SystemContext"><defs><marker id="c4-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--edge)"/></marker></defs><g class="viewport"></g></svg></div></main>
+<aside id="details" class="details" hidden aria-label="Element details"></aside>
+<footer class="foot"><span id="view-desc"></span><span class="grow"></span><span>c4hero 0.5.0 &middot; static export</span></footer>
+<script type="application/json" id="c4-data">{"title":"Arkitekturkort","views":[{"key":"OuojNzSQ","title":"Arkitekturkort","type":"systemLandscape"},{"key":"SystemContext-SystemContext","title":"SystemContext-SystemContext","type":"systemContext"}],"elements":{"user":{"name":"Anvender","type":"Person","description":"En almindelig bruger af systemet.","tags":["Element","Person"]},"admin":{"name":"Administrator","type":"Person","description":"En administrator der administrerer platformen.","tags":["Element","Person"]},"computers":{"name":"Enheder","type":"Software System","description":"Computere ude hos anvederne med det installerede bootc base image.","tags":["Element","Software System"]},"imageFactory":{"name":"Image og konfig Fabrik","type":"Software System","description":"Git Forge med iamge registry\nHåndterer kildekode, CI/CD pipelines og opbevaring af det bygger bootc base image.","tags":["Element","Software System","StateStore"]},"ciCd":{"name":"CI/CD Pipeline","type":"Container","technology":"Automation","description":"Bygger bootc base image automatisk.","tags":["Element","Container"]},"registry":{"name":"Image Registry","type":"Container","technology":"Registry","description":"Lager til det færdigbyggede bootc base image.","tags":["Element","Container"]},"webConsole":{"name":"Konfigurations App","type":"Software System","description":"En samlet, forenklet web frontend der tilbyder Git commits for uerfarne brugere, samt overblik over inventory/asset data og logs.","tags":["Element","Software System","Project Duplo"],"owner":"Duplo"},"keycloak":{"name":"Identitets og Adgangsstyring","type":"Software System","description":"Identitets- og adgangsstyring (IdP).","tags":["Element","Software System","Infrastruktur"]},"inventory":{"name":"Inventory / Asset Management","type":"Software System","description":"Backend-system til styring af aktiver og ressourcer.","tags":["Element","Software System","Infrastruktur"]},"newExternalSystem":{"name":"OS2AdmPC definition/beskrivelse","type":"Software System","tags":["Element","Software System","Configuration"]},"newSystem":{"name":"OS2BorgerPC definition/beskrivelse","type":"Software System","tags":["Element","Software System","Configuration"]},"newSystem2":{"name":"OS2SkolePC definition/beskrivelse","type":"Software System","tags":["Element","Software System","Configuration"]},"newSystem3":{"name":"New System","type":"Software System","tags":["Element","Software System","StateStore"]},"newSystem22":{"name":"Overvågning","type":"Software System","description":"Observability stack","tags":["Element","Software System","Infrastruktur"]}}}</script>
+<script>(function () {
+  var data = JSON.parse(document.getElementById('c4-data').textContent || '{}');
+  var stages = Array.prototype.slice.call(document.querySelectorAll('.stage'));
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var details = document.getElementById('details');
+  var viewDesc = document.getElementById('view-desc');
+  var backBtn = document.getElementById('back');
+  var search = document.getElementById('q');
+  var history = [];
+  var current = null;
+  var pan = {};
+
+  function stageFor(key) {
+    for (var i = 0; i < stages.length; i++) {
+      if (stages[i].getAttribute('data-view') === key) return stages[i];
+    }
+    return null;
+  }
+
+  function viewMeta(key) {
+    var views = data.views || [];
+    for (var i = 0; i < views.length; i++) if (views[i].key === key) return views[i];
+    return null;
+  }
+
+  function applyTransform(key) {
+    var stage = stageFor(key);
+    if (!stage) return;
+    var state = pan[key] || (pan[key] = { x: 0, y: 0, k: 1 });
+    var group = stage.querySelector('.viewport');
+    group.setAttribute('transform', 'translate(' + state.x + ',' + state.y + ') scale(' + state.k + ')');
+  }
+
+  function show(key, record) {
+    if (!stageFor(key)) return;
+    if (record && current && current !== key) history.push(current);
+    current = key;
+    for (var i = 0; i < stages.length; i++) {
+      stages[i].hidden = stages[i].getAttribute('data-view') !== key;
+    }
+    for (var t = 0; t < tabs.length; t++) {
+      if (tabs[t].getAttribute('data-view') === key) tabs[t].setAttribute('aria-current', 'page');
+      else tabs[t].removeAttribute('aria-current');
+    }
+    var meta = viewMeta(key);
+    viewDesc.textContent = meta ? (meta.description || meta.title) : '';
+    backBtn.hidden = history.length === 0;
+    clearSelection();
+    applyTransform(key);
+    applyFilter();
+  }
+
+  function clearSelection() {
+    var selected = document.querySelectorAll('.node.selected');
+    for (var i = 0; i < selected.length; i++) selected[i].classList.remove('selected');
+    details.hidden = true;
+    details.textContent = '';
+  }
+
+  function row(list, label, value) {
+    if (!value) return;
+    var dt = document.createElement('dt');
+    dt.textContent = label;
+    var dd = document.createElement('dd');
+    dd.textContent = value;
+    list.appendChild(dt);
+    list.appendChild(dd);
+  }
+
+  function select(node) {
+    var id = node.getAttribute('data-id');
+    var element = (data.elements || {})[id];
+    if (!element) return;
+    clearSelection();
+    node.classList.add('selected');
+
+    var kind = document.createElement('div');
+    kind.className = 'kind';
+    kind.textContent = element.type;
+    var title = document.createElement('h2');
+    title.textContent = element.name;
+    details.appendChild(kind);
+    details.appendChild(title);
+    if (element.description) {
+      var desc = document.createElement('p');
+      desc.textContent = element.description;
+      details.appendChild(desc);
+    }
+    var list = document.createElement('dl');
+    row(list, 'Technology', element.technology);
+    row(list, 'Owner', element.owner);
+    row(list, 'Status', element.status);
+    row(list, 'Tags', element.tags ? element.tags.join(', ') : '');
+    if (list.childNodes.length) details.appendChild(list);
+    if (element.url) {
+      var link = document.createElement('a');
+      link.href = element.url;
+      link.target = '_blank';
+      link.rel = 'noreferrer noopener';
+      link.textContent = 'Open link';
+      details.appendChild(link);
+    }
+    if (element.drillTo && element.drillTo !== current) {
+      var drill = document.createElement('button');
+      drill.type = 'button';
+      drill.textContent = 'Zoom in';
+      drill.addEventListener('click', function () { show(element.drillTo, true); });
+      details.appendChild(drill);
+    }
+    details.hidden = false;
+  }
+
+  function applyFilter() {
+    var query = (search.value || '').trim().toLowerCase();
+    var stage = stageFor(current);
+    if (!stage) return;
+    var nodes = stage.querySelectorAll('.node');
+    for (var i = 0; i < nodes.length; i++) {
+      var element = (data.elements || {})[nodes[i].getAttribute('data-id')] || {};
+      var haystack = (element.name + ' ' + (element.description || '') + ' ' + (element.technology || '') + ' ' + ((element.tags || []).join(' '))).toLowerCase();
+      var hit = query !== '' && haystack.indexOf(query) !== -1;
+      nodes[i].classList.toggle('dim', query !== '' && !hit);
+      nodes[i].classList.toggle('hit', hit);
+    }
+  }
+
+  function bindStage(stage) {
+    var key = stage.getAttribute('data-view');
+    var svg = stage.querySelector('svg');
+    var dragging = false;
+    var origin = null;
+
+    svg.addEventListener('pointerdown', function (event) {
+      if (event.target.closest && event.target.closest('.node')) return;
+      dragging = true;
+      origin = { x: event.clientX, y: event.clientY, state: { x: pan[key].x, y: pan[key].y } };
+      svg.classList.add('grabbing');
+      if (svg.setPointerCapture) svg.setPointerCapture(event.pointerId);
+    });
+    svg.addEventListener('pointermove', function (event) {
+      if (!dragging || !origin) return;
+      pan[key].x = origin.state.x + (event.clientX - origin.x);
+      pan[key].y = origin.state.y + (event.clientY - origin.y);
+      applyTransform(key);
+    });
+    function endDrag() { dragging = false; svg.classList.remove('grabbing'); }
+    svg.addEventListener('pointerup', endDrag);
+    svg.addEventListener('pointercancel', endDrag);
+    svg.addEventListener('pointerleave', endDrag);
+
+    svg.addEventListener('wheel', function (event) {
+      event.preventDefault();
+      var state = pan[key];
+      var factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+      var next = Math.min(4, Math.max(0.2, state.k * factor));
+      var rect = svg.getBoundingClientRect();
+      var px = event.clientX - rect.left;
+      var py = event.clientY - rect.top;
+      state.x = px - (px - state.x) * (next / state.k);
+      state.y = py - (py - state.y) * (next / state.k);
+      state.k = next;
+      applyTransform(key);
+    }, { passive: false });
+
+    stage.addEventListener('click', function (event) {
+      var node = event.target.closest ? event.target.closest('.node') : null;
+      if (node) select(node);
+      else clearSelection();
+    });
+    stage.addEventListener('dblclick', function (event) {
+      var node = event.target.closest ? event.target.closest('.node') : null;
+      if (node && node.getAttribute('data-drill')) show(node.getAttribute('data-drill'), true);
+    });
+    stage.addEventListener('keydown', function (event) {
+      var node = event.target.closest ? event.target.closest('.node') : null;
+      if (!node) return;
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(node); }
+    });
+  }
+
+  for (var s = 0; s < stages.length; s++) {
+    pan[stages[s].getAttribute('data-view')] = { x: 0, y: 0, k: 1 };
+    bindStage(stages[s]);
+  }
+  for (var t = 0; t < tabs.length; t++) {
+    (function (tab) {
+      tab.addEventListener('click', function () { history = []; show(tab.getAttribute('data-view'), false); });
+    })(tabs[t]);
+  }
+
+  backBtn.addEventListener('click', function () {
+    var previous = history.pop();
+    if (previous) show(previous, false);
+    backBtn.hidden = history.length === 0;
+  });
+  document.getElementById('fit').addEventListener('click', function () {
+    pan[current] = { x: 0, y: 0, k: 1 };
+    applyTransform(current);
+  });
+  search.addEventListener('input', applyFilter);
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') return;
+    if (search.value) { search.value = ''; applyFilter(); }
+    else clearSelection();
+  });
+
+  if (stages.length) show(stages[0].getAttribute('data-view'), false);
+})();</script>
+</body>
+</html>
